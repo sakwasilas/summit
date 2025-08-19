@@ -1,6 +1,9 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String,ForeignKey
+from sqlalchemy.orm import relationship
 from connections import Base 
-
+'''
+login functionlaity for admin and users
+'''
 class Admin(Base):
     __tablename__ = 'admins' 
 
@@ -25,4 +28,32 @@ class User(Base):
         self.password=password
 
   
-        
+    '''
+    admin course and subject model
+    '''    
+class Course(Base):
+    __tablename__ = 'courses'
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), unique=True, index=True)
+    level= Column(String(255))
+
+    subjects = relationship('Subject', back_populates='course')
+
+    def __init__(self, name,level):
+        self.name = name
+        self.level =level
+
+
+class Subject(Base):
+    __tablename__ = 'subjects'
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), index=True)
+    course_id = Column(Integer, ForeignKey('courses.id'))
+
+    course = relationship('Course', back_populates='subjects')
+
+    def __init__(self, name, course_id):
+        self.name = name
+        self.course_id = course_id
