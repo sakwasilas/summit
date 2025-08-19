@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            background-color: #f0f2f5;
+        }
+
+        /* Sidebar (Left Section) */
+        .sidebar {
+            width: 220px;
+            background-color:skyblue;
+            min-height: 100vh;
+            padding-top: 30px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            text-align: center;
+        }
+
+        .sidebar h2 {
+            color:black;
+            margin-bottom: 30px;
+        }
+
+        .sidebar a {
+            display: block;
+            color:black;
+            padding: 15px 20px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.2s;
+            text-align: left;
+        }
+
+        .sidebar a:hover {
+            background-color: #3498db;
+        }
+
+        /* Main Content (Right Section) */
+        .main-content {
+            margin-left: 220px;
+            flex: 1;
+            padding: 40px 20px;
+            background-color:white; /* Dark Blue */
+            color: white;
+            min-height: 100vh;
+        }
+
+        h1, h3, p {
+            color: black;
+        }
+
+        .card {
+            background-color: #ffffff;
+            color: black;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .card h5 {
+            font-weight: bold;
+        }
+
+        .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .cards-container .card {
+            flex: 1 1 calc(33% - 20px);
+            max-width: 300px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Summit Tech College"width="75"height="75">
+        <a href="{{ ('upload_video') }}">Upload Video</a>
+        <a href="{{ ('upload_document') }}">Upload Documents</a>
+        <a href="{{ ('manage_users') }}">Manage Users</a>
+        <a href="{{ ('upload_exam') }}">Upload Exam</a>
+        <a href="{{ ('view_results') }}">View Results</a>
+        <a href="{{ ('export_results') }}">Export Results</a>
+        <a href="{{ ('add_course') }}">Add Course</a>
+        <a href="{{ ('add_subject') }}">Add Subject</a>
+        <a href="{{ ('manage_payments') }}">Manage Payments</a>
+        <hr>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1><center><U><B>SUMMIT TECHNICAL COLLEGE</B></U></center></h1>
+        <h3>Welcome, {{ username }}</h3>
+        <p>Admin Dashboard - Manage your application here</p>
+        <hr>
+
+        <div class="cards-container">
+            <!-- Upload Video Card -->
+            <div class="card">
+                <h5>Upload Video</h5>
+                <p>Upload new videos for students.</p>
+                <a href="{{ ('upload_video') }}">Go to Upload</a>
+            </div>
+
+            <!-- Upload Documents Card -->
+            <div class="card">
+                <h5>Upload Documents</h5>
+                <p>Upload documents for students.</p>
+                <a href="{{ ('upload_document') }}">Go to Upload</a>
+            </div>
+
+            <!-- Manage Users Card -->
+            <div class="card">
+                <h5>Manage Users</h5>
+                <p>View, add, or remove users.</p>
+                <a href="{{ ('manage_users') }}">Manage Users</a>
+            </div>
+
+            <!-- Upload Exam Card -->
+            <div class="card">
+                <h5>Upload Exam</h5>
+                <p>Upload exam papers for students.</p>
+                <a href="{{ ('upload_exam') }}">Upload Exam</a>
+            </div>
+
+            <!-- View Results Card -->
+            <div class="card">
+                <h5>View Results</h5>
+                <p>View students' exam results.</p>
+                <a href="{{ ('view_results') }}">View Results</a>
+            </div>
+
+            <!-- Export Results to Excel Card -->
+            <div class="card">
+                <h5>Export Results to Excel</h5>
+                <p>Export student results to an Excel file.</p>
+                <a href="{{ ('export_results') }}">Export Results</a>
+            </div>
+
+            <!-- Add Course Card -->
+            <div class="card">
+                <h5>Add Course</h5>
+                <p>Add a new course to the system.</p>
+                <a href="{{ ('add_course') }}">Add Course</a>
+            </div>
+
+            <!-- Add Subject Card -->
+            <div class="card">
+                <h5>Add Subject</h5>
+                <p>Add a new subject to a course.</p>
+                <a href="{{ ('add_subject') }}">Add Subject</a>
+            </div>
+
+            <!-- Manage Payments Card -->
+            <div class="card">
+                <h5>Manage Payments</h5>
+                <p>View, add, or remove payments.</p>
+                <a href="{{ ('manage_payments') }}">Manage Payments</a>
+            </div>
+        </div>
+    </div>
+    <hr>
+    
+
+</body>
+</html>
