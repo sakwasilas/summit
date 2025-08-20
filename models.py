@@ -1,49 +1,44 @@
-from sqlalchemy import Column, Integer, String,ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from connections import Base 
-'''
-login functionlaity for admin and users
-'''
+from connections import Base
+
+
 class Admin(Base):
     __tablename__ = 'admins' 
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(100), unique=True, index=True) 
-    password = Column(String(100)) 
+    username = Column(String(100), unique=True, index=True)
+    password = Column(String(100))  
 
-    def __init__(self,username,password) :
-        self.username=username
-        self.passwrod=password
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password 
 
 class User(Base):
     __tablename__ = 'users'  
 
     id = Column(Integer, primary_key=True, index=True)
-    username= Column(String(100), unique=True, index=True)  
-    password = Column(String(100))  
+    username = Column(String(100), unique=True, index=True)
+    password = Column(String(100))
+
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
 
 
-    def __init__(self,username,password):
-        self.username=username
-        self.password=password
-
-  
-    '''
-    admin course and subject model
-    '''    
 class Course(Base):
     __tablename__ = 'courses'
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), unique=True, index=True)
-    level= Column(String(255))
+    level = Column(String(255))
 
-    subjects = relationship('Subject', back_populates='course')
+ 
+    subjects = relationship('Subject', back_populates='course', cascade='all, delete-orphan')
 
-    def __init__(self, name,level):
+    def __init__(self, name, level):
         self.name = name
-        self.level =level
-
+        self.level = level
 
 class Subject(Base):
     __tablename__ = 'subjects'
@@ -52,6 +47,7 @@ class Subject(Base):
     name = Column(String(100), index=True)
     course_id = Column(Integer, ForeignKey('courses.id'))
 
+    
     course = relationship('Course', back_populates='subjects')
 
     def __init__(self, name, course_id):
