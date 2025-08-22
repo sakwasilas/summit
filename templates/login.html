@@ -23,6 +23,11 @@
             font-size: 0.9em;
             margin-top: 10px;
         }
+        .register-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
@@ -46,6 +51,9 @@
                 <div class="error mt-3">Invalid credentials. Please try again.</div>
             {% endif %}
         </form>
+
+        <!-- Link to registration page for new students -->
+        <a href="{{ url_for('register') }}" class="register-link">New student? Register</a>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -54,4 +62,3 @@
 
 </body>
 </html>
-s

@@ -6,97 +6,68 @@
     <title>Student Dashboard</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
             margin: 0;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            padding: 0;
             display: flex;
-            background-color: #f0f2f5;
         }
 
-        /* Sidebar (Left Section) */
+        /* Sidebar */
         .sidebar {
-            width: 220px;
-            background-color: skyblue;
-            min-height: 100vh;
-            padding-top: 30px;
+            background-color: #2C3E50;
+            color: white;
+            width: 250px;
+            height: 100vh;
+            padding: 20px;
             position: fixed;
-            left: 0;
             top: 0;
-            bottom: 0;
-            text-align: center;
+            left: 0;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar img {
+            display: block;
+            margin: 0 auto 20px;
         }
 
         .sidebar h2 {
-            color: black;
+            text-align: center;
+            font-size: 20px;
             margin-bottom: 30px;
         }
 
         .sidebar a {
             display: block;
-            color: black;
-            padding: 15px 20px;
+            color: #ecf0f1;
             text-decoration: none;
-            font-weight: bold;
-            transition: background 0.2s;
-            text-align: left;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
         }
 
         .sidebar a:hover {
-            background-color: #3498db;
+            background-color: #34495e;
         }
 
-        /* Main Content (Right Section) */
+        /* Main Content */
         .main-content {
-            margin-left: 220px;
-            flex: 1;
-            padding: 40px 20px;
-            background-color: white;
-            min-height: 100vh;
+            margin-left: 270px;
+            padding: 30px;
+            flex-grow: 1;
         }
 
-        h1, h3, p {
-            color: black;
-        }
-
-        /* Header section with fees */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #3498db;
-            color: white;
-            padding: 20px;
-        }
-
-        .header h1 {
-            margin: 0;
-        }
-
-        .fee-info {
-            display: flex;
-            gap: 20px;
-        }
-
-        .fee-info div {
-            font-size: 18px;
-        }
-
-        /* Section Titles */
-        .section-title {
-            font-size: 22px;
-            margin: 40px 0 15px;
-            color: #34495e;
-            border-left: 5px solid #3498db;
-            padding-left: 10px;
-        }
-
-        /* Card styling */
-        .card {
-            background-color: #ffffff;
-            color: black;
-            padding: 20px;
-            border-radius: 12px;
+        .main-content h1 {
             text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            color: #2C3E50;
+            margin-bottom: 40px;
+        }
+
+        /* Available Exams Section */
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2C3E50;
             margin-bottom: 20px;
         }
 
@@ -104,11 +75,52 @@
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
+            justify-content: center;
         }
 
-        .cards-container .card {
-            flex: 1 1 calc(33% - 20px);
-            max-width: 300px;
+        .card {
+            background-color: #ecf0f1;
+            padding: 20px;
+            width: 300px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .card h5 {
+            font-size: 18px;
+            color: #2C3E50;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        .card a {
+            text-decoration: none;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .card a:hover {
+            background-color: #2980b9;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+          hr {
+            border: 0;
+            height: 2px;
+            background: #007bff;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0, 123, 255, 0.3);
         }
     </style>
 </head>
@@ -116,54 +128,30 @@
 
     <!-- Sidebar -->
     <div class="sidebar">
-         <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Summit Tech College"width="75"height="75">
+         <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Summit Tech College" width="75" height="75">
         <h2>Welcome, {{ username }}</h2>
-        <a href="{{ ('take_exam') }}">Take Exam</a>
-        <a href="{{ ('view_learning_materials') }}">View Learning Materials</a>
-        <a href="{{ ('view_fees') }}">View Fees</a>
+        <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
         <a href="{{ url_for('logout') }}">Logout</a>
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Header Section with Fees -->
-        <div class="header">
-            <h1>Summit technical college</h1>
-            <div class="fee-info">
-                <div>Total Fees: KSh {{ total_fees }}</div>
-                <div>Paid Amount: KSh {{ paid_amount }}</div>
-                <div>Due Balance: KSh {{ due_balance }}</div>
-            </div>
-        </div>
+        <h1>Summit Technical College</h1>
+        <hr>
 
         <!-- Available Exams Section -->
         <div class="section-title">Available Exams</div>
         <div class="cards-container">
-            {% for exam in exams %}
+            {% for exam in quizzes %}
             <div class="card">
                 <h5>{{ exam.title }}</h5>
                 <p>{{ exam.description }}</p>
-               <!--------take exam url-->
+                <a href="{{ url_for('take_exam', quiz_id=exam.id) }}" class="btn btn-primary">Take Exam</a>
             </div>
             {% else %}
             <p>No exams available at the moment.</p>
             {% endfor %}
         </div>
-
-        <!-- Learning Materials Section -->
-        <div class="section-title">Learning Materials</div>
-        <div class="cards-container">
-            {% for material in learning_materials %}
-            <div class="card">
-                <h5>{{ material.title }}</h5>
-                <p>{{ material.type }}</p>
-                <!----download exam url-->
-            </div>
-            {% else %}
-            <p>No learning materials available at the moment.</p>
-            {% endfor %}
-        </div>
-     
 
     </div>
 
