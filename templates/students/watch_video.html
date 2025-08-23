@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ video.title }}</title>
+</head>
+<body>
+
+    <h2>{{ video.title }}</h2>
+
+    <!-- Embed the video using HTML5 Video Player -->
+    <video controls width="100%">
+        <source src="{{ url_for('static', filename='videos/' + video.filename) }}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <br>
+    <a href="{{ url_for('student_dashboard') }}">Back to Dashboard</a>
+
+</body>
+</html>

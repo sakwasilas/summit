@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Document</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 80%;
+            margin: 50px auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2C3E50;
+        }
+
+        .document-info {
+            margin-bottom: 20px;
+        }
+
+        .document-info p {
+            font-size: 18px;
+            line-height: 1.5;
+        }
+
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn-back:hover {
+            background-color: #2980b9;
+        }
+
+        .file-preview {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .file-preview iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>View Document</h1>
+
+        <div class="document-info">
+            <p><strong>Title:</strong> {{ document.title }}</p>
+            <p><strong>Course:</strong> {{ document.course.name }}</p>
+            <p><strong>Subject:</strong> {{ document.subject.name }}</p>
+        </div>
+
+        <div class="file-preview">
+            <!-- Embed PDF document in an iframe -->
+            <iframe src="{{ url_for('static', filename='uploads/documents/' + document.filename) }}" title="Document Preview"></iframe>
+        </div>
+
+        <a href="{{ url_for('student_dashboard') }}" class="btn-back">Back to Dashboard</a>
+    </div>
+
+</body>
+</html>

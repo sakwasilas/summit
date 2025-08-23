@@ -535,6 +535,44 @@ def take_exam(quiz_id):
 
     finally:
         db.close()
+
+'''
+doucments and videos
+'''
+from flask import send_from_directory
+
+@app.route('/view_document/<int:document_id>')
+def view_document(document_id):
+    db = SessionLocal()  
+    document = db.query(Document).filter(Document.id == document_id).first()
+
+    if document:
+        # Get the document file path
+        document_path = os.path.join(DOCUMENTS_UPLOAD_FOLDER, document.filename)
+        
+        # Check the file extension
+        file_extension = document.filename.split('.')[-1].lower()
+
+        if file_extension == 'pdf':
+           
+            return render_template('students/view_document.html', document=document, is_pdf=True)
+        
+        elif file_extension in ['docx', 'doc', 'pptx', 'ppt']:
+       
+            return render_template('students/view_document.html', document=document, is_pdf=False)
+        
+        else:
+            return "Unsupported file type", 404
+    else:
+        return "Document not found", 404
+
+
+
+
+@app.route('/watch_video/<video_id>')
+def watch_video(video_id):
+    video = Video.query.get(video_id)
+    return render_template('student/watch_video.html', video=video)
     
 
 

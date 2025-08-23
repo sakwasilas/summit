@@ -63,7 +63,7 @@
             margin-bottom: 40px;
         }
 
-        /* Available Exams Section */
+        /* Section Title */
         .section-title {
             font-size: 24px;
             font-weight: bold;
@@ -115,7 +115,8 @@
         .card:hover {
             transform: translateY(-5px);
         }
-          hr {
+
+        hr {
             border: 0;
             height: 2px;
             background: #007bff;
@@ -130,7 +131,7 @@
     <div class="sidebar">
          <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Summit Tech College" width="75" height="75">
         <h2>Welcome, {{ username }}</h2>
-        <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
+        <hr>
         <a href="{{ url_for('logout') }}">Logout</a>
     </div>
 
@@ -153,6 +154,35 @@
             {% endfor %}
         </div>
 
+        <!-- Available Documents Section -->
+        <div class="section-title">Available Documents</div>
+        <div class="cards-container">
+            {% for document in documents %}
+            <div class="card">
+                <h5>{{ document.title }}</h5>
+                <p>{{ document.description }}</p>
+                <!-- Link to open the document in the browser -->
+                <a href="{{ url_for('view_document', document_id=document.id) }}" class="btn btn-primary">View Document</a>
+            </div>
+            {% else %}
+            <p>No documents available at the moment.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Available Videos Section -->
+        <div class="section-title">Available Videos</div>
+        <div class="cards-container">
+            {% for video in videos %}
+            <div class="card">
+                <h5>{{ video.title }}</h5>
+                <p>{{ video.description }}</p>
+                <!-- Link to watch the video -->
+                <a href="{{ url_for('watch_video', video_id=video.id) }}" class="btn btn-primary">Watch Video</a>
+            </div>
+            {% else %}
+            <p>No videos available at the moment.</p>
+            {% endfor %}
+        </div>
     </div>
 
 </body>
