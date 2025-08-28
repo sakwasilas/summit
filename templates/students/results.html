@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2 style="font-family: Arial, sans-serif; color: #333; text-align: center; margin-top: 20px;">
+    Your Exam Results
+  </h2>
+
+  {% if results %}
+    <table style="width: 80%; margin: 20px auto; border-collapse: collapse; font-family: Arial, sans-serif; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+      <thead>
+        <tr style="background-color: #f2f2f2; color: #333;">
+          <th style="padding: 12px; border: 1px solid #ccc;">Subject</th>
+          <th style="padding: 12px; border: 1px solid #ccc;">Score</th>
+          <th style="padding: 12px; border: 1px solid #ccc;">Percentage</th>
+          <th style="padding: 12px; border: 1px solid #ccc;">Date Taken</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for res in results %}
+          <tr style="text-align: center;">
+            <td style="padding: 10px; border: 1px solid #ccc;">{{ res.quiz.title }}</td>
+            <td style="padding: 10px; border: 1px solid #ccc;">{{ res.score }} / {{ res.total_marks }}</td>
+            <td style="padding: 10px; border: 1px solid #ccc;">{{ res.percentage }}%</td>
+            <td style="padding: 10px; border: 1px solid #ccc;">{{ res.taken_on.strftime('%Y-%m-%d %H:%M') }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p style="text-align: center; font-family: Arial, sans-serif; color: #666; margin-top: 30px;">
+      No exam results available yet.
+    </p>
+  {% endif %}
+
+  <!-- Back to Dashboard Button -->
+  <div style="text-align: center; margin-top: 40px;">
+    <a href="{{ url_for('student_dashboard') }}" style="display: inline-block; padding: 10px 20px; background-color: #007BFF; color: white; text-decoration: none; border-radius: 5px; font-family: Arial, sans-serif;">
+      &larr; Back to Dashboard
+    </a>
+  </div>
+{% endblock %}

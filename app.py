@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
-from datetime import datetime
+import pandas as pd
+from flask import send_file
 import os
 
 from connections import SessionLocal
-from models import User, Admin, Course, Subject, Question, Quiz, Video, Document,StudentProfile
+from models import User, Admin, Course, Subject, Question, Quiz, Video, Document,StudentProfile,Result
 from utils import parse_docx_questions
 
 app = Flask(__name__)
@@ -241,6 +242,7 @@ def delete_subject(subject_id):
 # -----------------------------
 # Exams (.docx parsing)
 # -----------------------------
+'''
 @app.route('/upload_exam', methods=['GET', 'POST'])
 def upload_exam():
     if session.get('role') != 'admin': return redirect(url_for('login'))
@@ -278,6 +280,55 @@ def upload_exam():
             db.commit()
             flash(f"✅ Uploaded quiz with {len(questions)} question(s).", "success")
             return redirect(url_for('upload_exam'))
+        return render_template('admin/upload_exams.html', courses=courses, subjects=subjects)
+    finally:
+        db.close()
+'''
+@app.route('/upload_exam', methods=['GET', 'POST'])
+def upload_exam():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    db = SessionLocal()
+    try:
+        courses, subjects = db.query(Course).all(), db.query(Subject).all()
+        if request.method == 'POST':
+            title = request.form['title'].strip()
+            course_id, subject_id = int(request.form['course']), int(request.form['subject'])
+            duration = int(request.form.get('duration', 30))
+            file = request.files.get('quiz_file')
+
+            if not file or not allowed(file.filename, ALLOWED_EXAM_EXTENSIONS):
+                flash('❌ Upload a valid .docx file.', 'danger')
+                return redirect(request.url)
+
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(EXAMS_UPLOAD_FOLDER, filename)
+            file.save(file_path)
+
+            questions = parse_docx_questions(file_path, image_output_dir=QUESTION_IMAGES_FOLDER)
+            if not questions:
+                flash("❌ No valid questions found.", "danger")
+                return redirect(request.url)
+
+            quiz = Quiz(title=title, course_id=course_id, subject_id=subject_id,
+                        duration=duration, status='active')
+            db.add(quiz)
+            db.commit()
+            db.refresh(quiz)
+
+            for q in questions:
+                db.add(Question(quiz_id=quiz.id, question_text=q.get("question", ""),
+                                option_a=q.get("a", ""), option_b=q.get("b", ""),
+                                option_c=q.get("c", ""), option_d=q.get("d", ""),
+                                correct_option=q.get("answer", "").lower(),
+                                marks=q.get("marks", 1), extra_content=q.get("extra_content"),
+                                image=q.get("image")))
+            db.commit()
+            flash(f"✅ Uploaded quiz with {len(questions)} question(s).", "success")
+
+            # Pass quiz.id to template so we can show the review link
+            return render_template('admin/upload_exams.html', courses=courses, subjects=subjects, uploaded_quiz_id=quiz.id)
+
         return render_template('admin/upload_exams.html', courses=courses, subjects=subjects)
     finally:
         db.close()
@@ -371,29 +422,6 @@ def upload_document():
         db.close()
 
 
-@app.route('/admin/delete_document/<int:document_id>', methods=['POST'])
-def delete_document(document_id):
-    if session.get('role') != 'admin': return redirect(url_for('login'))
-    db = SessionLocal()
-    try:
-        doc = db.query(Document).get(document_id)
-        if not doc: flash("Document not found!", "danger"); return redirect(url_for('upload_document'))
-        path = os.path.join(DOCUMENTS_UPLOAD_FOLDER, doc.filename)
-        if os.path.exists(path): os.remove(path)
-        db.delete(doc); db.commit()
-        flash("Document deleted.", "success")
-        return redirect(url_for('upload_document'))
-    finally:
-        db.close()
-
-    
-
-
-
-
-
-
-
 
 #-----------------------------
 #student functionality
@@ -464,8 +492,6 @@ def complete_profile():
     finally:
         db.close()
 
-
-
 '''
 student dashboard
 '''
@@ -478,23 +504,25 @@ def student_dashboard():
 
     db = SessionLocal()
     try:
-   
         user = db.query(User).filter_by(username=session['username']).first()
         if not user:
             flash("User not found.", "error")
             return redirect(url_for('logout'))
 
-    
         student_profile = db.query(StudentProfile).filter_by(user_id=user.id).first()
-
         if not student_profile:
             flash("Complete your profile before proceeding.", "warning")
             return redirect(url_for('complete_profile'))
 
-     
+        # Get available quizzes for student's course
         available_quizzes = db.query(Quiz).filter_by(course_id=student_profile.course_id, status='active').all()
+        student_profile=db.query(StudentProfile).filter_by(user_id=user.id).first()
 
-        
+        # Get quizzes already taken by the student
+        taken_quiz_ids = set(
+            r.quiz_id for r in db.query(Result).filter_by(student_id=user.id).all()
+        )
+
         available_videos = db.query(Video).filter_by(course_id=student_profile.course_id).all()
         available_documents = db.query(Document).filter_by(course_id=student_profile.course_id).all()
 
@@ -503,62 +531,38 @@ def student_dashboard():
             username=user.username,
             quizzes=available_quizzes,
             videos=available_videos,
-            documents=available_documents
+            documents=available_documents,
+            taken_quiz_ids=taken_quiz_ids ,
+            student_profile=student_profile
         )
-    finally:
-        db.close()
-
-
-
-'''
-student take exams
-'''
-@app.route('/student/take_exam/<int:quiz_id>', methods=['GET', 'POST'])
-def take_exam(quiz_id):
-    db = SessionLocal()
-    try:
-        # Fetch the quiz and questions
-        quiz = db.query(Quiz).filter_by(id=quiz_id).first()
-        if not quiz:
-            flash("Quiz not found.", "error")
-            return redirect(url_for('student_dashboard'))
-
-        questions = db.query(Question).filter_by(quiz_id=quiz.id).all()
-
-        # Handle form submission for answers (if POST request)
-        if request.method == 'POST':
-            # Process the student's answers and save results
-            pass
-
-        # Render the exam page
-        return render_template('students/take_exam.html', quiz=quiz, questions=questions)
-
     finally:
         db.close()
 
 '''
 doucments and videos
 '''
-from flask import send_from_directory
-
 @app.route('/view_document/<int:document_id>')
 def view_document(document_id):
     db = SessionLocal()  
+    student = db.query(StudentProfile).filter_by(user_id=session['user_id']).first()  
+    
+    if student and student.blocked:
+        flash("You can't access this material. Please clear the fee to regain access.", "danger")
+        return redirect(url_for('student_dashboard'))  
     document = db.query(Document).filter(Document.id == document_id).first()
 
     if document:
-        # Get the document file path
+        
         document_path = os.path.join(DOCUMENTS_UPLOAD_FOLDER, document.filename)
         
-        # Check the file extension
+        
         file_extension = document.filename.split('.')[-1].lower()
 
+       
         if file_extension == 'pdf':
-           
             return render_template('students/view_document.html', document=document, is_pdf=True)
         
         elif file_extension in ['docx', 'doc', 'pptx', 'ppt']:
-       
             return render_template('students/view_document.html', document=document, is_pdf=False)
         
         else:
@@ -566,16 +570,401 @@ def view_document(document_id):
     else:
         return "Document not found", 404
 
-
-
-
-@app.route('/watch_video/<video_id>')
+@app.route('/watch_video/<int:video_id>')
 def watch_video(video_id):
-    video = Video.query.get(video_id)
-    return render_template('student/watch_video.html', video=video)
-    
+    if 'user_id' not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for('login'))
+
+    db = SessionLocal()
+    try:
+        student = db.query(StudentProfile).filter_by(user_id=session['user_id']).first()
+        if not student:
+            flash("Student profile not found.", "danger")
+            return redirect(url_for('student_dashboard'))
+
+        # Check if student is blocked
+        if student.blocked:
+            flash("You can't access this material. Please clear the fee to regain access.", "danger")
+            return redirect(url_for('student_dashboard'))
+
+        # Fetch the video
+        video = db.query(Video).filter_by(id=video_id).first()
+        if not video:
+            return "Video not found", 404
+
+        return render_template('students/watch_video.html', video=video)
+
+    finally:
+        db.close()
 
 
+
+from sqlalchemy.orm import joinedload
+from sqlalchemy import or_
+
+@app.route('/manage_students', methods=['GET', 'POST'])
+def manage_students():
+    if 'role' not in session or session['role'] != 'admin':
+        return redirect(url_for('login'))
+
+    db = SessionLocal()
+
+    if request.method == 'POST':
+        student_id = request.form.get('student_id')
+        action = request.form.get('action')
+        student = db.query(StudentProfile).get(student_id)
+
+        if action == 'toggle_block' and student:
+            student.blocked = not student.blocked
+            db.commit()
+
+        elif action == 'delete' and student:
+            # Delete associated user first
+            user = student.user
+            if user:
+                db.delete(user)
+            db.delete(student)
+            db.commit()
+
+        return redirect(url_for('manage_students'))
+
+    # GET method: handle search query
+    search_query = request.args.get('search', '').strip()
+
+    if search_query:
+        students = db.query(StudentProfile).filter(
+            or_(
+                StudentProfile.full_name.ilike(f'%{search_query}%'),
+                StudentProfile.exam_type.ilike(f'%{search_query}%'),
+                StudentProfile.admission_number.ilike(f'%{search_query}%'),
+                StudentProfile.phone_number.ilike(f'%{search_query}%'),
+                StudentProfile.course.has(name=search_query)
+            )
+        ).all()
+    else:
+        students = db.query(StudentProfile).all()
+
+    return render_template('admin/manage_students.html', students=students, search_query=search_query)
+
+
+
+
+'''
+show username and pasword
+'''
+from sqlalchemy.orm import joinedload
+@app.route('/show_credentials')
+def show_credentials():
+    if 'role' not in session or session['role'] != 'admin':
+        return redirect(url_for('login'))
+
+    db = SessionLocal()
+    try:
+        
+        users = db.query(User).options(joinedload(User.student_profile)).all()
+    finally:
+        db.close()
+
+    return render_template('admin/show_credentials.html', users=users)
+
+@app.route('/student/take_exam/<int:quiz_id>', methods=['GET', 'POST'])
+def take_exam(quiz_id):
+    if 'username' not in session:
+        flash('Please log in first.', 'error')
+        return redirect(url_for('login'))
+
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter_by(username=session['username']).first()
+        if not user:
+            flash("User not found.", "error")
+            return redirect(url_for('logout'))
+
+        quiz = db.query(Quiz).filter_by(id=quiz_id).first()
+        if not quiz:
+            flash("Quiz not found.", "error")
+            return redirect(url_for('student_dashboard'))
+
+        # Check for retake here
+        existing_result = db.query(Result).filter_by(student_id=user.id, quiz_id=quiz.id).first()
+        if existing_result:
+            flash("You have already taken this exam. Retakes are not allowed.", "warning")
+            return redirect(url_for('student_results', result_id=existing_result.id))
+
+        questions = db.query(Question).filter_by(quiz_id=quiz.id).all()
+
+        if request.method == 'POST':
+            answers = request.form
+            total_score = 0
+            total_marks = 0
+
+            for question in questions:
+                selected_answer = answers.get(f"question_{question.id}")
+                print(f"Selected answer for question {question.id}: {selected_answer} | Correct answer: {question.correct_option}")
+
+                if selected_answer and selected_answer.upper() == question.correct_option.upper():
+                    total_score += question.marks
+
+                total_marks += question.marks
+
+            percentage = round((total_score / total_marks) * 100) if total_marks else 0
+
+            result = Result(  
+                student_id=user.id,
+                quiz_id=quiz.id,
+                score=total_score,
+                total_marks=total_marks,
+                percentage=percentage
+            )
+            db.add(result)
+            db.commit()
+
+            flash(f'✅ You scored {total_score} out of {total_marks} ({percentage}%)', 'success')
+
+            return redirect(url_for('student_results', result_id=result.id))
+
+        return render_template('students/take_exam.html', quiz=quiz, questions=questions)
+
+    except Exception as e:
+        db.rollback()
+        flash(f"An error occurred: {str(e)}", "danger")
+        return redirect(url_for('student_dashboard'))
+    finally:
+        db.close()
+
+
+'''
+results
+'''
+@app.route('/student/results')
+def student_results():
+    if 'username' not in session or session.get('role') != 'student':
+        flash('Please log in as a student first.', 'error')
+        return redirect(url_for('login'))
+
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter_by(username=session['username']).first()
+        if not user:
+            flash("User not found.", "error")
+            return redirect(url_for('logout'))
+
+        # Retrieve student's results
+        results = (
+            db.query(Result)
+              .join(Quiz, Result.quiz_id == Quiz.id)
+              .filter(Result.student_id == user.id)
+              .all()
+        )
+
+        return render_template('students/results.html', results=results)
+
+    finally:
+        db.close()
+
+
+'''
+admin view all results  
+'''
+@app.route('/admin/view_results', methods=['GET', 'POST'])
+def view_results():
+    if 'user_id' not in session or session.get('role') != 'admin':
+        flash("Admin access required", "danger")
+        return redirect(url_for('login'))
+
+    db = SessionLocal()
+    try:
+        courses = db.query(Course).all()
+        subjects = db.query(Subject).all()
+
+        selected_course = request.form.get('course')
+        selected_subject = request.form.get('subject')
+        export = request.form.get('export')
+
+        # Query setup
+        query = db.query(Result).join(Result.quiz).join(Quiz.course).join(Quiz.subject).join(Result.student)
+
+        if selected_course:
+            query = query.filter(Quiz.course_id == int(selected_course))
+        if selected_subject:
+            query = query.filter(Quiz.subject_id == int(selected_subject))
+
+        results = query.all()
+
+        # Export to Excel
+        if export == 'true':
+            data = []
+            for r in results:
+                data.append({
+                    'Student Username': r.student.username,
+                    'Full Name': r.student.profile.full_name if r.student.profile else 'N/A',
+                    'Course': r.quiz.course.name if r.quiz.course else 'N/A',
+                    'Subject': r.quiz.subject.name if r.quiz.subject else 'N/A',
+                    'Quiz Title': r.quiz.title,
+                    'Score': r.score,
+                    'Total Marks': r.total_marks,
+                    'Percentage': r.percentage,
+                    'Taken On': r.taken_on.strftime("%Y-%m-%d %H:%M:%S")
+                })
+
+            df = pd.DataFrame(data)
+            excel_path = os.path.join(EXAMS_UPLOAD_FOLDER, 'quiz_results.xlsx')
+            df.to_excel(excel_path, index=False)
+
+            return send_file(
+                excel_path,
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                as_attachment=True,
+                download_name='quiz_results.xlsx'
+            )
+
+        return render_template('admin/view_results.html',
+                               results=results,
+                               courses=courses,
+                               subjects=subjects,
+                               selected_course=selected_course,
+                               selected_subject=selected_subject)
+
+    finally:
+        db.close()
+
+'''
+manage quizzes
+'''
+@app.route('/admin/manage_quizzes', methods=['GET', 'POST'])
+def manage_quizzes():
+    if 'role' not in session or session['role'] != 'admin':
+        return redirect(url_for('login'))
+
+    db = SessionLocal()
+    try:
+        if request.method == 'POST':
+            quiz_id = int(request.form.get('quiz_id'))
+            action = request.form.get('action')
+
+            quiz = db.query(Quiz).filter_by(id=quiz_id).first()
+            if not quiz:
+                flash("Quiz not found.", "danger")
+                return redirect(url_for('manage_quizzes'))
+
+            if action == 'activate':
+                quiz.status = 'active'
+            elif action == 'deactivate':
+                quiz.status = 'inactive'
+
+            db.commit()
+            flash(f"Quiz '{quiz.title}' has been {quiz.status}.", "success")
+            return redirect(url_for('manage_quizzes'))
+
+        quizzes = db.query(Quiz).all()
+        return render_template('admin/manage_quizzes.html', quizzes=quizzes)
+    finally:
+        db.close()
+
+'''
+delete quiz
+'''
+
+@app.route('/admin/delete_quiz/<int:quiz_id>', methods=['POST'])
+def delete_quiz(quiz_id):
+    if 'role' not in session or session['role'] != 'admin':
+        return redirect(url_for('login'))
+    db = SessionLocal()
+    quiz = db.query(Quiz).filter_by(id=quiz_id).first()
+    if quiz:
+        db.delete(quiz)
+        db.commit()
+        flash('Quiz deleted successfully.', 'success')
+    else:
+        flash('Quiz not found.', 'danger')
+    return redirect(url_for('manage_quizzes')) 
+
+'''
+confirm and delete exams
+'''
+@app.route('/admin/review_quiz/<int:quiz_id>', methods=['GET', 'POST'])
+def review_uploaded_quiz(quiz_id):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    db = SessionLocal()
+    try:
+        quiz = db.query(Quiz).filter_by(id=quiz_id).first()
+        if not quiz:
+            flash("Quiz not found.", "danger")
+            return redirect(url_for('upload_exam'))
+
+        if request.method == 'POST':
+            action = request.form.get('action')
+            if action == 'delete':
+                # Delete questions
+                db.query(Question).filter_by(quiz_id=quiz.id).delete()
+                # Delete quiz
+                db.delete(quiz)
+                db.commit()
+                flash("❌ Quiz deleted.", "warning")
+                return redirect(url_for('upload_exam'))
+
+            elif action == 'confirm':
+                flash("✅ Quiz confirmed and saved.", "success")
+                return redirect(url_for('upload_exam'))
+
+        questions = db.query(Question).filter_by(quiz_id=quiz.id).all()
+        return render_template('admin/review_uploaded_quiz.html', quiz=quiz, questions=questions)
+    finally:
+        db.close()
+
+'''
+view uploade document
+'''
+@app.route("/admin/documents")
+def list_documents():
+    db = SessionLocal()
+    try:
+        documents = db.query(Document).all()
+        return render_template("admin/list_documents.html", documents=documents)
+    finally:
+        db.close()
+'''
+toggle document active/inactive
+'''
+@app.route("/admin/document/<int:doc_id>/toggle")
+def toggle_document_status(doc_id):
+    db = SessionLocal()
+    try:
+        document = db.query(Document).filter_by(id=doc_id).first()
+        if document:
+            document.is_active = not document.is_active
+            db.commit()
+            flash("✅ Document status updated.", "success")
+        else:
+            flash("❌ Document not found.", "danger")
+    finally:
+        db.close()
+    return redirect(url_for("list_documents"))
+'''
+delete document
+'''
+@app.route("/admin/document/<int:doc_id>/delete", methods=["POST"])
+def delete_document(doc_id):
+    db = SessionLocal()
+    try:
+        document = db.query(Document).filter_by(id=doc_id).first()
+        if document:
+            # Delete file from disk
+            filepath = os.path.join(DOCUMENTS_UPLOAD_FOLDER, document.filename)
+            if os.path.exists(filepath):
+                os.remove(filepath)
+
+            db.delete(document)
+            db.commit()
+            flash("🗑️ Document deleted successfully.", "success")
+        else:
+            flash("❌ Document not found.", "danger")
+    finally:
+        db.close()
+    return redirect(url_for("list_documents"))
 
 
 

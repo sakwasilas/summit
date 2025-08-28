@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime, Float,Boolean
 from sqlalchemy.orm import relationship,backref
 from datetime import datetime
 from connections import Base
@@ -123,6 +123,8 @@ class Result(Base):
     percentage = Column(Float)
     taken_on = Column(DateTime, default=datetime.utcnow)
 
+    student = relationship('User', backref='results')
+
     def __init__(self, student_id, quiz_id, score, total_marks, percentage):
         self.student_id = student_id
         self.quiz_id = quiz_id
@@ -154,6 +156,7 @@ class Document(Base):
     filename = Column(String(255), nullable=False)
     course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)
     subject_id = Column(Integer, ForeignKey('subjects.id'), nullable=False)
+    is_active = Column(Boolean, default=True)
 
     course = relationship('Course', backref=backref('documents', lazy=True))
     subject = relationship('Subject', backref=backref('documents', lazy=True))
@@ -172,17 +175,20 @@ class StudentProfile(Base):
     course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)  
     level = Column(String(50), nullable=False)
     admission_number = Column(String(50), unique=True, nullable=False)
+    blocked = Column(Boolean, default=False)
     phone_number = Column(String(50), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)  
     course = relationship("Course", backref="students")
-    user = relationship("User", backref="student_profile")  
+    user = relationship("User", backref="student_profile") 
 
-    def __init__(self, full_name, exam_type, course_id, level, admission_number, phone_number, user_id):
+
+    def __init__(self, full_name, exam_type, course_id, level, admission_number, phone_number, user_id,blocked=False):
         self.full_name = full_name
         self.exam_type = exam_type
         self.course_id = course_id
         self.level = level
         self.admission_number = admission_number
         self.phone_number = phone_number
-        self.user_id = user_id  
+        self.user_id = user_id 
+        self.blocked=blocked
 

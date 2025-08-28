@@ -4,19 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ video.title }}</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+        }
+       
+        .content {
+            flex: 1;
+            padding: 20px;
+        }
+        footer {
+            background: #222;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 14px;
+        }
+        hr {
+    border: none;
+    height: 4px;
+    background: linear-gradient(to right, #0044cc, #00ccff);
+    margin: 15px 0;
+}
+ .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+        }
+        .header img {
+            height: 75px;
+            width: 75px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+    </style>
 </head>
 <body>
+    <!-- Header -->
+    <div class="header">
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Summit Tech College">
+        <h1>SUMMIT TECHNICAL COLLEGE</h1>
+    </div>
+    <hr>
 
-    <h2>{{ video.title }}</h2>
+    <!-- Main Content -->
+    <div class="content">
+        <h2>{{ video.title }}</h2>
 
-    <!-- Embed the video using HTML5 Video Player -->
-    <video controls width="100%">
-        <source src="{{ url_for('static', filename='videos/' + video.filename) }}" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+        <!-- Embed the video using HTML5 Video Player -->
+        <video controls width="100%">
+            <source src="{{ url_for('static', filename='uploads/videos/' + video.filename) }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
 
-    <br>
-    <a href="{{ url_for('student_dashboard') }}">Back to Dashboard</a>
+        <br><br>
+        <a href="{{ url_for('student_dashboard') }}">Back to Dashboard</a>
+    </div>
 
+    <!-- Footer -->
+    <footer>
+        &copy; {{ current_year }} Summit Technical College. All Rights Reserved.
+    </footer>
 </body>
 </html>

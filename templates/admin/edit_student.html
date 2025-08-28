@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Edit Student</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    form { max-width: 520px; margin: 0 auto; display: grid; gap: 12px; }
+    label { font-weight: bold; }
+    input { padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+    button { padding: 10px 14px; border: 0; background: #007bff; color: white; border-radius: 6px; cursor: pointer; }
+    a { text-decoration: none; }
+  </style>
+</head>
+<body>
+  <h2>Edit Student: {{ user.username }}</h2>
+  <form method="POST">
+    <div>
+      <label>Username</label>
+      <input type="text" name="username" value="{{ user.username }}" required />
+    </div>
+    <div>
+      <label>Password</label>
+      <input type="text" name="password" value="{{ user.password }}" required />
+    </div>
+    <div>
+      <label>Full Name</label>
+      <input type="text" name="full_name" value="{{ profile.full_name }}" required />
+    </div>
+    <div>
+      <label>Exam Type</label>
+      <input type="text" name="exam_type" value="{{ profile.exam_type }}" required />
+    </div>
+    <div>
+      <label>Contact No</label>
+      <input type="text" name="phone_number" value="{{ profile.phone_number }}" required />
+    </div>
+
+    <button type="submit">Save</button>
+    <a href="{{ url_for('manage_students') }}">← Back</a>
+  </form>
+</body>
+</html>
