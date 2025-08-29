@@ -24,13 +24,19 @@
       width: 220px;
       background-color: skyblue;
       min-height: 100vh;
-      padding-top: 20px;
+      display: flex;
+      flex-direction: column;
       position: fixed;
       left: 0;
       top: 0;
       bottom: 0;
+    }
+
+    .sidebar-content {
+      flex: 1; /* scrollable middle part */
+      overflow-y: auto;
+      padding-top: 20px;
       text-align: center;
-      overflow-y: auto;  /* scrollable if content is too long */
     }
     .sidebar::-webkit-scrollbar {
       width: 6px;
@@ -43,10 +49,6 @@
     .sidebar img {
       border-radius: 50%;
       margin-bottom: 15px;
-    }
-    .sidebar h2 {
-      color: black;
-      margin-bottom: 20px;
     }
     .sidebar a {
       display: block;
@@ -61,6 +63,19 @@
     .sidebar a:hover {
       background-color: #3498db;
       color: white;
+    }
+
+    /* Logout stays at bottom */
+    .logout {
+      padding: 15px;
+      text-align: center;
+      background: #007bff;
+      color: white;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .logout:hover {
+      background: #0056b3;
     }
 
     /* Main content */
@@ -106,12 +121,14 @@
         position: relative;
         width: 100%;
         height: auto;
+      }
+      .sidebar-content {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
       }
       .sidebar a {
-        flex: 1 1 45%;  /* two columns of links */
+        flex: 1 1 45%;
         text-align: center;
         font-size: 14px;
       }
@@ -122,13 +139,11 @@
     }
 
     @media (max-width: 480px) {
-      .sidebar {
+      .sidebar-content {
         display: block;
-        width: 100%;
-        text-align: center;
       }
       .sidebar a {
-        flex: 1 1 100%;  /* stack links vertically */
+        flex: 1 1 100%;
       }
       .main-content {
         margin-left: 0;
@@ -140,29 +155,31 @@
 
   <!-- Sidebar -->
   <div class="sidebar">
-    <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Summit Tech College" width="75" height="75">
-    <ol style="list-style: none; padding: 0; margin: 0;">
-      <li><a href="{{ url_for('upload_video') }}">Upload Video</a></li>
-      <li><a href="{{ url_for('list_videos') }}">Manage Video</a></li>
-      <hr>
-      <li><a href="{{ url_for('upload_document') }}">Upload Documents</a></li>
-      <hr>
-      <li><a href="{{ url_for('manage_students') }}">Manage Students</a></li>
-      <hr>
-      <li><a href="{{ url_for('upload_exam') }}">Upload Exam</a></li>
-      <li><a href="{{ url_for('view_results') }}">View Results</a></li>
-      <hr>
-      <li><a href="{{ url_for('add_course') }}">Add Course</a></li>
-      <li><a href="{{ url_for('manage_courses') }}">Manage Courses</a></li>
-      <hr>
-      <li><a href="{{ url_for('add_subject') }}">Add Subject</a></li>
-      <hr>
-      <li><a href="{{ url_for('manage_quizzes') }}">Manage Uploaded Questions</a></li>
-      <hr>
-      <li><a href="{{ url_for('show_credentials') }}">Manage Credentials</a></li>
-    </ol>
-    <hr>
-    <a href="{{ url_for('logout') }}">Logout</a>
+    <div class="sidebar-content">
+      <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Summit Tech College" width="75" height="75">
+      <ol style="list-style: none; padding: 0; margin: 0;">
+        <li><a href="{{ url_for('upload_video') }}">Upload Video</a></li>
+        <li><a href="{{ url_for('list_videos') }}">Manage Video</a></li>
+        <hr>
+        <li><a href="{{ url_for('upload_document') }}">Upload Documents</a></li>
+        <hr>
+        <li><a href="{{ url_for('manage_students') }}">Manage Students</a></li>
+        <hr>
+        <li><a href="{{ url_for('upload_exam') }}">Upload Exam</a></li>
+        <li><a href="{{ url_for('view_results') }}">View Results</a></li>
+        <hr>
+        <li><a href="{{ url_for('add_course') }}">Add Course</a></li>
+        <li><a href="{{ url_for('manage_courses') }}">Manage Courses</a></li>
+        <hr>
+        <li><a href="{{ url_for('add_subject') }}">Add Subject</a></li>
+        <hr>
+        <li><a href="{{ url_for('manage_quizzes') }}">Manage Uploaded Questions</a></li>
+        <hr>
+        <li><a href="{{ url_for('show_credentials') }}">Manage Credentials</a></li>
+      </ol>
+    </div>
+    <!-- Logout at bottom -->
+    <a href="{{ url_for('logout') }}" class="logout">Logout</a>
   </div>
 
   <!-- Main Content -->
@@ -174,18 +191,17 @@
 
     <!-- Cards -->
     <div class="cards-container">
-      <!-- Example card -->
       <div class="card">
         <h5>Total Students</h5>
-        <p>120</p>
+        <p>0</p>
       </div>
       <div class="card">
         <h5>Total Courses</h5>
-        <p>15</p>
+        <p>0</p>
       </div>
       <div class="card">
         <h5>Pending Exams</h5>
-        <p>3</p>
+        <p>0</p>
       </div>
     </div>
   </div>
