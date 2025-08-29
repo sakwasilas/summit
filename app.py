@@ -927,17 +927,7 @@ def review_uploaded_quiz(quiz_id):
     finally:
         db.close()
 
-'''
-view uploade document
-'''
-@app.route("/admin/documents")
-def list_documents():
-    db = SessionLocal()
-    try:
-        documents = db.query(Document).all()
-        return render_template("admin/list_documents.html", documents=documents)
-    finally:
-        db.close()
+
 '''
 toggle document active/inactive
 '''
@@ -977,6 +967,33 @@ def delete_document(doc_id):
     finally:
         db.close()
     return redirect(url_for("list_documents"))
+'''
+admin view uploaded video
+'''
+@app.route('/admin/videos')
+def list_videos():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    db = SessionLocal()
+    try:
+        videos = db.query(Video).all()
+        return render_template('admin/list_videos.html', videos=videos)
+    finally:
+        db.close()
+'''
+List document
+'''
+@app.route("/admin/documents")
+def list_documents():
+    if session.get("role") != "admin":
+        return redirect(url_for("login"))
+
+    db = SessionLocal()
+    try:
+        documents = db.query(Document).all()
+        return render_template("admin/list_documents.html", documents=documents)
+    finally:
+        db.close()
 
 
 

@@ -1,0 +1,184 @@
+<!doctype html>
+<html>
+<head>
+    <title>Manage Documents</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        a.upload-btn {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+
+        a.upload-btn:hover {
+            background: #2980b9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+            font-size: 16px;
+        }
+
+        tr:hover {
+            background: #f2f8ff;
+        }
+
+        a.action-link {
+            display: inline-block;
+            margin: 2px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        a.view {
+            background: #2ecc71;
+            color: white;
+        }
+        a.view:hover {
+            background: #27ae60;
+        }
+
+        a.toggle {
+            background: #f39c12;
+            color: white;
+        }
+        a.toggle:hover {
+            background: #d68910;
+        }
+
+        button {
+            background: #e74c3c;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #c0392b;
+        }
+
+        .empty {
+            text-align: center;
+            font-style: italic;
+            color: #7f8c8d;
+            padding: 20px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+                width: 100%;
+            }
+            thead {
+                display: none;
+            }
+            tr {
+                margin-bottom: 15px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                padding: 10px;
+                background: #fff;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            }
+            td {
+                display: flex;
+                justify-content: space-between;
+                padding: 10px;
+                border: none;
+                border-bottom: 1px solid #eee;
+            }
+            td:last-child {
+                border-bottom: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Uploaded Documents</h1>
+
+    <a href="{{ url_for('upload_document') }}" class="upload-btn">📤 Upload New Document</a>
+
+    {% if documents %}
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Course</th>
+                <th>Subject</th>
+                <th>File</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in documents %}
+            <tr>
+                <td>{{ doc.title }}</td>
+                <td>{{ doc.course.name if doc.course else "N/A" }}</td>
+                <td>{{ doc.subject.name if doc.subject else "N/A" }}</td>
+                <td>
+                    {% if doc.filename.endswith(".pdf") %}
+                        <a href="{{ url_for('static', filename='uploads/documents/' + doc.filename) }}" target="_blank" class="action-link view">📄 View PDF</a>
+                    {% else %}
+                        <a href="{{ url_for('static', filename='uploads/documents/' + doc.filename) }}" target="_blank" class="action-link view">📥 Download</a>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('toggle_document_status', doc_id=doc.id) }}" class="action-link toggle">
+                        {{ "Deactivate" if doc.is_active else "Activate" }}
+                    </a>
+                </td>
+                <td>
+                    <form action="{{ url_for('delete_document', doc_id=doc.id) }}" method="POST" style="display:inline;">
+                        <button type="submit">🗑 Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty">No documents uploaded yet.</div>
+    {% endif %}
+</body>
+</html>
