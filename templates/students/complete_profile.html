@@ -13,7 +13,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
         }
 
         .container {
@@ -22,27 +22,31 @@
             padding: 30px;
             border-radius: 10px;
             width: 100%;
-            max-width: 600px;
+            max-width: 700px;
         }
 
         h2 {
             text-align: center;
             color: #333;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
         }
 
         label {
             font-size: 14px;
             font-weight: bold;
             color: #555;
-            margin-bottom: 8px;
-            display: block;
+            margin-bottom: 6px;
         }
 
         input[type="text"], select {
             width: 100%;
             padding: 10px;
-            margin: 10px 0;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 14px;
@@ -70,70 +74,37 @@
             background-color: #45a049;
         }
 
-        .form-group {
-            margin-bottom: 15px;
+        /* --- Responsive Layout --- */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
 
-        /* Small devices (phones, <600px) */
+        /* Small devices (phones) */
         @media screen and (max-width: 600px) {
-            body {
-                padding: 15px;
-                height: auto;
-                flex-direction: column;
-            }
-
             .container {
-                width: 100%;
                 padding: 20px;
-                border-radius: 8px;
                 box-shadow: none;
             }
 
             h2 {
-                font-size: 18px;
+                font-size: 20px;
             }
 
-            label {
-                font-size: 13px;
+            .form-row {
+                grid-template-columns: 1fr; /* Stack fields */
+                gap: 10px;
             }
 
             input[type="text"], select {
+                font-size: 13px;
                 padding: 8px;
-                font-size: 13px;
             }
 
             button {
+                font-size: 14px;
                 padding: 10px;
-                font-size: 14px;
-            }
-        }
-
-        /* Medium devices (tablets, 601px–900px) */
-        @media screen and (min-width: 601px) and (max-width: 900px) {
-            .container {
-                max-width: 500px;
-                padding: 25px;
-            }
-
-            h2 {
-                font-size: 22px;
-            }
-
-            input[type="text"], select {
-                font-size: 14px;
-                padding: 9px;
-            }
-
-            button {
-                font-size: 15px;
-                padding: 11px;
-            }
-        }
-
-        /* Large devices (desktops, >900px) */
-        @media screen and (min-width: 901px) {
-            .container {
-                max-width: 600px;
             }
         }
     </style>
@@ -142,43 +113,47 @@
     <div class="container">
         <h2>Complete Your Profile</h2>
         <form action="{{ url_for('complete_profile') }}" method="POST">
-            <div class="form-group">
-                <label for="full_name">Full Name:</label>
-                <input type="text" id="full_name" name="full_name" required>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="full_name">Full Name:</label>
+                    <input type="text" id="full_name" name="full_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone_number">Phone Number:</label>
+                    <input type="text" id="phone_number" name="phone_number" required>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="exam_type">Select Exam Type:</label>
-                <select id="exam_type" name="exam_type" required>
-                    <option value="kasneb">KASNEB</option>
-                    <option value="knec">KNEC</option>
-                    <option value="nita">NITA</option>
-                    <option value="short_course">Short Course</option>
-                </select>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="exam_type">Select Exam Type:</label>
+                    <select id="exam_type" name="exam_type" required>
+                        <option value="kasneb">KASNEB</option>
+                        <option value="knec">KNEC</option>
+                        <option value="nita">NITA</option>
+                        <option value="short_course">Short Course</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="course">Select Course:</label>
+                    <select id="course" name="course_id" required>
+                        {% for course in courses %}
+                            <option value="{{ course.id }}">{{ course.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="course">Select Course:</label>
-                <select id="course" name="course_id" required>
-                    {% for course in courses %}
-                        <option value="{{ course.id }}">{{ course.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="level">Level:</label>
-                <input type="text" id="level" name="level" required>
-            </div>
-
-            <div class="form-group">
-                <label for="admission_number">Admission Number:</label>
-                <input type="text" id="admission_number" name="admission_number" required>
-            </div>
-
-            <div class="form-group">
-                <label for="phone_number">Phone Number:</label>
-                <input type="text" id="phone_number" name="phone_number" required>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="level">Level:</label>
+                    <input type="text" id="level" name="level" required>
+                </div>
+                <div class="form-group">
+                    <label for="admission_number">Admission Number:</label>
+                    <input type="text" id="admission_number" name="admission_number" required>
+                </div>
             </div>
 
             <button type="submit">Complete Profile</button>
