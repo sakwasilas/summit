@@ -74,21 +74,23 @@
             margin-bottom: 15px;
         }
 
-        /* Media query for small screens */
+        /* Small devices (phones, <600px) */
         @media screen and (max-width: 600px) {
             body {
-                padding: 10px;
-                height: auto; /* Let content define height */
+                padding: 15px;
+                height: auto;
+                flex-direction: column;
             }
 
             .container {
                 width: 100%;
                 padding: 20px;
-                box-shadow: none; /* Optional: reduce shadow for mobile */
+                border-radius: 8px;
+                box-shadow: none;
             }
 
             h2 {
-                font-size: 20px;
+                font-size: 18px;
             }
 
             label {
@@ -103,6 +105,35 @@
             button {
                 padding: 10px;
                 font-size: 14px;
+            }
+        }
+
+        /* Medium devices (tablets, 601px–900px) */
+        @media screen and (min-width: 601px) and (max-width: 900px) {
+            .container {
+                max-width: 500px;
+                padding: 25px;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+
+            input[type="text"], select {
+                font-size: 14px;
+                padding: 9px;
+            }
+
+            button {
+                font-size: 15px;
+                padding: 11px;
+            }
+        }
+
+        /* Large devices (desktops, >900px) */
+        @media screen and (min-width: 901px) {
+            .container {
+                max-width: 600px;
             }
         }
     </style>
