@@ -73,6 +73,38 @@
         .form-group {
             margin-bottom: 15px;
         }
+
+        /* Media query for small screens */
+        @media screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+                height: auto; /* Let content define height */
+            }
+
+            .container {
+                width: 100%;
+                padding: 20px;
+                box-shadow: none; /* Optional: reduce shadow for mobile */
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            label {
+                font-size: 13px;
+            }
+
+            input[type="text"], select {
+                padding: 8px;
+                font-size: 13px;
+            }
+
+            button {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
