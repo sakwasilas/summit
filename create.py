@@ -9,27 +9,26 @@ if __name__ == "__main__":
 '''
 create.py
 '''
+# create.py
 import os
 from connections import Base, engine, SessionLocal
-from models import User
+from models import User, Admin
 
 # ✅ Create tables
 Base.metadata.create_all(bind=engine)
 print("✅ Tables created successfully!")
-print("Using DB file:", os.path.abspath("exams_25.db"))
 
 # ✅ Add default admin user
 def add_admin_user():
     db = SessionLocal()
     try:
-        existing_user = db.query(User).filter_by(username="admin").first()
-        if existing_user:
+        existing_admin = db.query(Admin).filter_by(username="admin").first()
+        if existing_admin:
             print("ℹ️ Admin user already exists.")
         else:
-            admin = User(
+            admin = Admin(
                 username="admin",
-                password="admin123", 
-                role="admin"
+                password="admin123"   # ⚠️ plain text, later hash with werkzeug
             )
             db.add(admin)
             db.commit()
