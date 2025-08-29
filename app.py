@@ -564,31 +564,19 @@ def view_document(document_id):
     if student and student.blocked:
         flash("You can't access this material. Please clear the fee to regain access.", "danger")
         return redirect(url_for('student_dashboard'))  
+    
     document = db.query(Document).filter(Document.id == document_id).first()
 
     if document:
-        
         document_path = os.path.join(DOCUMENTS_UPLOAD_FOLDER, document.filename)
         
-        
-        file_ex
-        
-        
-        
-        
-        
-        
-        
-        
-        ension = document.filename.split('.')[-1].lower()
+        # Get file extension
+        file_extension = document.filename.split('.')[-1].lower()
 
-       
         if file_extension == 'pdf':
             return render_template('students/view_document.html', document=document, is_pdf=True)
-        
         elif file_extension in ['docx', 'doc', 'pptx', 'ppt']:
             return render_template('students/view_document.html', document=document, is_pdf=False)
-        
         else:
             return "Unsupported file type", 404
     else:
