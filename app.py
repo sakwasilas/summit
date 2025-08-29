@@ -983,17 +983,7 @@ def list_videos():
 '''
 List document
 '''
-@app.route("/admin/documents")
-def list_documents():
-    if session.get("role") != "admin":
-        return redirect(url_for("login"))
 
-    db = SessionLocal()
-    try:
-        documents = db.query(Document).all()
-        return render_template("admin/list_documents.html", documents=documents)
-    finally:
-        db.close()
 
 
 
