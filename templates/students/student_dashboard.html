@@ -1,147 +1,166 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard</title>
+  <style>
+    /* General Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: row;
+      min-height: 100vh;
+      background: #f5f5f5;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+      flex-shrink: 0;
+    }
+
+    .sidebar img {
+      border-radius: 50%;
+      display: block;
+      margin: 0 auto 10px;
+    }
+
+    .sidebar h2, 
+    .sidebar p, 
+    .sidebar a, 
+    .sidebar li {
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    .sidebar a {
+      color: #1abc9c;
+      text-decoration: none;
+    }
+
+    .sidebar a:hover {
+      text-decoration: underline;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      background: #fff;
+    }
+
+    .main-content h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 20px 0 10px;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background: #f0f0f0;
+    }
+
+    td a {
+      color: #3498db;
+      text-decoration: none;
+    }
+
+    td a:hover {
+      text-decoration: underline;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 15px;
+      background: #2c3e50;
+      color: white;
+      font-size: 14px;
+      width: 100%;
+    }
+
+    /* RESPONSIVENESS */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        text-align: center;
+      }
+
+      .main-content {
+        padding: 15px;
+      }
+
+      table, thead, tbody, th, td, tr {
+        display: block;
+        width: 100%;
+      }
+
+      thead {
+        display: none; /* Hide table headers on small screens */
+      }
+
+      tr {
+        margin-bottom: 15px;
+        border-bottom: 2px solid #eee;
+      }
+
+      td {
+        padding-left: 50%;
+        position: relative;
+        text-align: left;
+      }
+
+      td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        font-weight: bold;
+        color: #555;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .section-title {
+        font-size: 16px;
+      }
+
+      .main-content h1 {
+        font-size: 20px;
+      }
+
+      .sidebar {
+        font-size: 14px;
+      }
+    }
+  </style>
 </head>
-<body>
-
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Summit Tech College" width="75" height="75">
-        <h2>Welcome, {{ username }}</h2>
-        <hr>
-        <p>
-            {{ student_profile.full_name }}
-        </p> 
-        <hr>
-        <p>
-            <strong>Admin no:</strong>
-            {{ student_profile.admission_number }}
-        </p>
-
-        <p>
-            <strong>Course:</strong>
-            {{ student_profile.course.name }}
-        </p>
-        <p>
-            <strong>Level:</strong>
-            {{ student_profile.level }}
-        </p>
-        <p>
-            <strong>Phone number:</strong>
-            {{ student_profile.phone_number }}
-        </p>
-        <p>
-            <strong>Exams:</strong>
-            {{ student_profile.exam_type }}
-        </p>
-        <hr>
-
-        <ol>
-            <li><a href="{{ url_for('student_results')}}">Exam Results</a></li>
-        </ol>
-        <hr>
-        <a href="{{ url_for('logout') }}">Logout</a>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <h1>Summit Technical College</h1>
-        <hr>
-
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <!-- Available Exams Section -->
-        <div class="section-title">Available Exams</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Description</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for exam in quizzes %}
-                <tr>
-                    <td>{{ exam.title }}</td>
-                    <td>{{ exam.description }}</td>
-                    <td><a href="{{ url_for('take_exam', quiz_id=exam.id) }}">Take Exam</a></td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="3">No exams available at the moment.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <!-- Available Documents Section -->
-        <div class="section-title">Available Documents</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Description</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for document in documents %}
-                <tr>
-                    <td>{{ document.title }}</td>
-                    <td>{{ document.description }}</td>
-                    <td><a href="{{ url_for('view_document', document_id=document.id) }}">View Document</a></td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="3">No documents available at the moment.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <!-- Available Videos Section -->
-        <div class="section-title">Available Videos</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Description</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for video in videos %}
-                <tr>
-                    <td>{{ video.title }}</td>
-                    <td>{{ video.description }}</td>
-                    <td><a href="{{ url_for('watch_video', video_id=video.id) }}">Watch Video</a></td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="3">No videos available at the moment.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">
-        &copy; {{ current_year }} Summit Technical College. All rights reserved.
-    </div>
-
-</body>
-</html>
