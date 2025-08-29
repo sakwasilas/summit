@@ -9,15 +9,14 @@
 </head>
 <body class="bg-light d-flex flex-column min-vh-100">
 
-    <div class="container my-4 flex-grow-1">
+    <div class="container my-3 flex-grow-1">
 
-        <!-- Flask Flash Messages -->
+        <!-- Flash Message -->
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             {% for message in messages %}
-              <div class="alert alert-warning alert-dismissible fade show" role="alert">
+              <div class="alert alert-danger text-center fw-bold py-2 mb-3" role="alert">
                 {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
               </div>
             {% endfor %}
           {% endif %}
@@ -69,18 +68,27 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-success w-100">Complete Profile</button>
+                <button type="submit" class="btn btn-success w-100 mb-3">Complete Profile</button>
             </form>
 
-            <div class="text-center mt-4">
-                <a href="{{ url_for('watch_video') }}" class="btn btn-primary">
-                    📺 Watch Video Guide
-                </a>
+            <!-- Action Buttons -->
+            <div class="row g-2">
+                <div class="col-12 col-md-6">
+                    <a href="{{ url_for('view_document') }}" class="btn btn-outline-primary btn-lg w-100">
+                        📄 View Document
+                    </a>
+                </div>
+                <div class="col-12 col-md-6">
+                    <a href="{{ url_for('watch_video') }}" class="btn btn-outline-secondary btn-lg w-100">
+                        📺 Watch Video
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
-    <footer class="bg-dark text-light text-center py-3 mt-auto">
+    <!-- Full-width Footer -->
+    <footer class="bg-dark text-light text-center py-3 mt-auto w-100">
         &copy; {{ current_year }} Summit Technical College. All rights reserved.
     </footer>
 
