@@ -556,7 +556,16 @@ def view_document(document_id):
         document_path = os.path.join(DOCUMENTS_UPLOAD_FOLDER, document.filename)
         
         
-        file_extension = document.filename.split('.')[-1].lower()
+        file_ex
+        
+        
+        
+        
+        
+        
+        
+        
+        ension = document.filename.split('.')[-1].lower()
 
        
         if file_extension == 'pdf':
