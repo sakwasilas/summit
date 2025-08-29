@@ -83,27 +83,41 @@ def admin_dashboard():
 # -----------------------------
 # Courses & Subjects
 # -----------------------------
-'''
-add course
-'''
 @app.route('/add_course', methods=['GET', 'POST'])
 def add_course():
     if 'role' not in session or session['role'] != 'admin':
         return redirect(url_for('login'))  
-    
-    db = SessionLocal()
-    
-    if request.method == 'POST':
-        course_name = request.form['course_name']
-        course_level = request.form['course_level'] 
-        
-        new_course = Course(name=course_name, level=course_level)
-        db.add(new_course)
-        db.commit()
-        
-        return redirect(url_for('admin_dashboard'))  
 
-    return render_template('admin/add_course.html')
+    db = SessionLocal()
+    try:
+        if request.method == 'POST':
+            course_name = request.form['course_name']
+            course_level = request.form['course_level']
+
+            # 🔍 Check if course already exists
+            existing_course = db.query(Course).filter_by(name=course_name).first()
+            if existing_course:
+                flash(f"Course '{course_name}' already exists!", "warning")
+                return redirect(url_for('add_course'))
+
+            # Add new course
+            new_course = Course(name=course_name, level=course_level)
+            db.add(new_course)
+            db.commit()
+            flash("Course added successfully!", "success")
+            return redirect(url_for('admin_dashboard'))
+
+        return render_template('admin/add_course.html')
+
+    except Exception as e:
+        db.rollback()
+        print("❌ Error in /add_course:", e)
+        flash("An error occurred while adding the course.", "danger")
+        return redirect(url_for('add_course'))
+
+    finally:
+        db.close()
+
 
 '''
 edit a course
