@@ -455,8 +455,9 @@ def register():
 
         flash('Registration successful! Please log in.', 'success')
         return redirect(url_for('login'))
-
     return render_template('students/register.html')
+
+
 
 '''
 student complete profile route
