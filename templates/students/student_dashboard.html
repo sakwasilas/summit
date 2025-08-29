@@ -4,151 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            background-color: #2C3E50;
-            color: white;
-            width: 250px;
-            height: 100vh;
-            padding: 20px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .sidebar img {
-            display: block;
-            margin: 0 auto 20px;
-        }
-
-        .sidebar h2 {
-            text-align: center;
-            font-size: 20px;
-            margin-bottom: 30px;
-        }
-
-        .sidebar a {
-            display: block;
-            color: #ecf0f1;
-            text-decoration: none;
-            padding: 10px 15px;
-            margin: 10px 0;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-
-        .sidebar a:hover {
-            background-color: #34495e;
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 270px;
-            padding: 30px;
-            flex: 1;
-        }
-
-        .main-content h1 {
-            text-align: center;
-            color: #2C3E50;
-            margin-bottom: 40px;
-        }
-
-        /* Flash messages */
-        .alert {
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .alert-warning {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-        }
-        .alert-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-
-        /* Section Title */
-        .section-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2C3E50;
-            margin: 30px 0 10px;
-        }
-
-        /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        table th, table td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-
-        table th {
-            background-color: #2C3E50;
-            color: white;
-        }
-
-        table td a {
-            text-decoration: none;
-            background-color: #3498db;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-
-        table td a:hover {
-            background-color: #2980b9;
-        }
-
-        hr {
-            border: 0;
-            height: 2px;
-            background: #007bff;
-            margin: 20px 0;
-            box-shadow: 0 4px 6px rgba(0, 123, 255, 0.3);
-        }
-
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 15px;
-            background: #2C3E50;
-            color: white;
-            margin-left: 270px;
-        }
-    </style>
 </head>
 <body>
 
@@ -157,42 +12,37 @@
         <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Summit Tech College" width="75" height="75">
         <h2>Welcome, {{ username }}</h2>
         <hr>
-<p>
-  
-  <span style="color: red;">{{ student_profile.full_name }}</span>
-</p> 
-<hr>
-    <p>
-  <strong style="color: skyblue;">Admin no:</strong>
-  <span style="color: red;">{{ student_profile.admission_number }}</span>
-</p>
+        <p>
+            {{ student_profile.full_name }}
+        </p> 
+        <hr>
+        <p>
+            <strong>Admin no:</strong>
+            {{ student_profile.admission_number }}
+        </p>
 
-<p>
-  <strong style="color: skyblue;">Course:</strong>
-  <span style="color: red;">{{ student_profile.course.name }}</span>
-</p>
-<p>
-  <strong style="color: skyblue;">Level:</strong>
-  <span style="color: red;">{{ student_profile.level }}</span>
-</p>
-<p>
-  <strong style="color: skyblue;">Phone number:</strong>
-  <span style="color: red;">{{ student_profile.phone_number }}</span>
-</p>
-<p>
-  <strong style="color: skyblue;">Exams:</strong>
-  <span style="color: red;">{{ student_profile.exam_type }}</span>
-</p>
+        <p>
+            <strong>Course:</strong>
+            {{ student_profile.course.name }}
+        </p>
+        <p>
+            <strong>Level:</strong>
+            {{ student_profile.level }}
+        </p>
+        <p>
+            <strong>Phone number:</strong>
+            {{ student_profile.phone_number }}
+        </p>
+        <p>
+            <strong>Exams:</strong>
+            {{ student_profile.exam_type }}
+        </p>
+        <hr>
 
-  <hr>
-
-        
-      
-        <ol style="list-style-type: none; padding: 0;">
+        <ol>
             <li><a href="{{ url_for('student_results')}}">Exam Results</a></li>
-       
-    <hr>
-    </ol>
+        </ol>
+        <hr>
         <a href="{{ url_for('logout') }}">Logout</a>
     </div>
 
@@ -231,7 +81,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="3" style="text-align:center; color:#7f8c8d;">No exams available at the moment.</td>
+                    <td colspan="3">No exams available at the moment.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -256,7 +106,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="3" style="text-align:center; color:#7f8c8d;">No documents available at the moment.</td>
+                    <td colspan="3">No documents available at the moment.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -281,7 +131,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="3" style="text-align:center; color:#7f8c8d;">No videos available at the moment.</td>
+                    <td colspan="3">No videos available at the moment.</td>
                 </tr>
                 {% endfor %}
             </tbody>
