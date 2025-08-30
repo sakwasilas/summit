@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.utils import secure_filename
 import pandas as pd
 from flask import send_file
+from datetime import datetime
 import os
 
 from connections import SessionLocal
@@ -470,11 +471,9 @@ def complete_profile():
 
     db = SessionLocal()
     try:
-       
         user = db.query(User).filter_by(username=session['username']).first()
 
         if request.method == 'POST':
-            
             full_name = request.form['full_name']
             exam_type = request.form['exam_type']
             course_id = request.form['course_id']
@@ -482,7 +481,6 @@ def complete_profile():
             admission_number = request.form['admission_number']
             phone_number = request.form['phone_number']
 
-           
             student_profile = StudentProfile(
                 full_name=full_name,
                 exam_type=exam_type,
@@ -490,22 +488,36 @@ def complete_profile():
                 level=level,
                 admission_number=admission_number,
                 phone_number=phone_number,
-                user_id=user.id  
+                user_id=user.id
             )
 
-            
             db.add(student_profile)
             db.commit()
 
             flash('Profile completed successfully!', 'success')
-            return redirect(url_for('student_dashboard'))  
+            return redirect(url_for('student_dashboard'))
 
-        
-        courses = db.query(Course).all()  
-        return render_template('students/complete_profile.html', courses=courses)
+        # Get all courses for dropdown
+        courses = db.query(Course).all()
+
+        # Fetch student's profile if exists
+        student_profile = db.query(StudentProfile).filter_by(user_id=user.id).first()
+
+        documents, videos = [], []
+        if student_profile:
+            documents = db.query(Document).filter_by(course_id=student_profile.course_id).all()
+            videos = db.query(Video).filter_by(course_id=student_profile.course_id).all()
+
+        return render_template(
+            'students/complete_profile.html',
+            courses=courses,
+            documents=documents,
+            videos=videos
+        )
 
     finally:
         db.close()
+
 
 '''
 student dashboard
@@ -558,29 +570,39 @@ doucments and videos
 '''
 @app.route('/view_document/<int:document_id>')
 def view_document(document_id):
-    db = SessionLocal()  
-    student = db.query(StudentProfile).filter_by(user_id=session['user_id']).first()  
-    
-    if student and student.blocked:
-        flash("You can't access this material. Please clear the fee to regain access.", "danger")
-        return redirect(url_for('student_dashboard'))  
-    
-    document = db.query(Document).filter(Document.id == document_id).first()
+    if 'user_id' not in session:
+        flash("Please log in first.", "error")
+        return redirect(url_for('login'))
 
-    if document:
+    db = SessionLocal()
+    try:
+        # check if student is blocked
+        student = db.query(StudentProfile).filter_by(user_id=session['user_id']).first()
+        if student and student.blocked:
+            flash("You can't access this material. Please clear the fee to regain access.", "danger")
+            return redirect(url_for('student_dashboard'))
+
+        # get the document
+        document = db.query(Document).filter_by(id=document_id).first()
+        if not document:
+            flash("Document not found.", "error")
+            return redirect(url_for('complete_profile'))
+
+        # resolve the actual path on disk
         document_path = os.path.join(DOCUMENTS_UPLOAD_FOLDER, document.filename)
-        
-        # Get file extension
-        file_extension = document.filename.split('.')[-1].lower()
 
+        # check file extension
+        file_extension = document.filename.split('.')[-1].lower()
         if file_extension == 'pdf':
             return render_template('students/view_document.html', document=document, is_pdf=True)
         elif file_extension in ['docx', 'doc', 'pptx', 'ppt']:
             return render_template('students/view_document.html', document=document, is_pdf=False)
         else:
             return "Unsupported file type", 404
-    else:
-        return "Document not found", 404
+
+    finally:
+        db.close()
+
 
 @app.route('/watch_video/<int:video_id>')
 def watch_video(video_id):

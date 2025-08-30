@@ -9,7 +9,7 @@
     body {
       display: flex;
       flex-direction: column;
-      min-height: 100vh; /* sticky footer */
+      min-height: 100vh;
     }
     main {
       flex: 1;
@@ -72,16 +72,6 @@
         </div>
         <button type="submit" class="btn btn-success w-100 mt-4">Complete Profile</button>
       </form>
-
-      <!-- Action buttons -->
-      <div class="row g-2">
-        <div class="col-12 col-md-6">
-          <a href="{{ url_for('view_document') }}" class="btn btn-outline-primary w-100">📄 View Document</a>
-        </div>
-        <div class="col-12 col-md-6">
-          <a href="{{ url_for('watch_video') }}" class="btn btn-outline-secondary w-100">📺 Watch Video</a>
-        </div>
-      </div>
     </div>
   </main>
 
