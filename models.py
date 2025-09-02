@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime, Float,Boolean
-from sqlalchemy.orm import relationship,backref
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime, Float, Boolean
+from sqlalchemy.orm import relationship, backref
 from datetime import datetime
 from connections import Base
 
@@ -22,6 +22,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(100), unique=True, index=True)
     password = Column(String(100))
+
+    # ✅ one-to-one StudentProfile
+    profile = relationship("StudentProfile", back_populates="user", uselist=False)
 
     def __init__(self, username, password):
         self.username = username
@@ -131,9 +134,7 @@ class Result(Base):
         self.score = score
         self.total_marks = total_marks
         self.percentage = percentage
-'''
-video upload model
-'''
+
 
 class Video(Base):
     __tablename__ = "videos"
@@ -148,7 +149,7 @@ class Video(Base):
     course = relationship("Course", backref="videos")
     subject = relationship("Subject", backref="videos")
 
-''' upload document'''
+
 class Document(Base):
     __tablename__ = "documents"
     id = Column(Integer, primary_key=True)
@@ -162,10 +163,6 @@ class Document(Base):
     subject = relationship('Subject', backref=backref('documents', lazy=True))
 
 
-'''
-complete profile model
-'''
-
 class StudentProfile(Base):
     __tablename__ = 'student_profiles'
     
@@ -173,16 +170,19 @@ class StudentProfile(Base):
     full_name = Column(String(255), nullable=False)
     exam_type = Column(String(50), nullable=False)  
     course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)  
+    
     level = Column(String(50), nullable=False)
     admission_number = Column(String(50), unique=True, nullable=False)
     blocked = Column(Boolean, default=False)
     phone_number = Column(String(50), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)  
+
     course = relationship("Course", backref="students")
-    user = relationship("User", backref="student_profile") 
 
+    # ✅ back reference to User
+    user = relationship("User", back_populates="profile") 
 
-    def __init__(self, full_name, exam_type, course_id, level, admission_number, phone_number, user_id,blocked=False):
+    def __init__(self, full_name, exam_type, course_id, level, admission_number, phone_number, user_id, blocked=False):
         self.full_name = full_name
         self.exam_type = exam_type
         self.course_id = course_id
@@ -190,5 +190,19 @@ class StudentProfile(Base):
         self.admission_number = admission_number
         self.phone_number = phone_number
         self.user_id = user_id 
-        self.blocked=blocked
+        self.blocked = blocked
 
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(Integer, primary_key=True)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    target_type = Column(String(50), default="all")   # "all", "course", "subject"
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=True)
+    subject_id = Column(Integer, ForeignKey("subjects.id"), nullable=True)
+
+    course = relationship("Course", backref="messages")
+    subject = relationship("Subject", backref="messages")

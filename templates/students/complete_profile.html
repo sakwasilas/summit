@@ -47,6 +47,7 @@
           <div class="col-md-6">
             <label for="exam_type" class="form-label">Exam Type</label>
             <select id="exam_type" name="exam_type" class="form-select" required>
+              <option value="">-- Select Exam Type --</option>
               <option value="kasneb">KASNEB</option>
               <option value="knec">KNEC</option>
               <option value="nita">NITA</option>
@@ -56,6 +57,7 @@
           <div class="col-md-6">
             <label for="course" class="form-label">Course</label>
             <select id="course" name="course_id" class="form-select" required>
+              <option value="">-- Select Course --</option>
               {% for course in courses %}
                 <option value="{{ course.id }}">{{ course.name }}</option>
               {% endfor %}
@@ -63,7 +65,12 @@
           </div>
           <div class="col-md-6">
             <label for="level" class="form-label">Level</label>
-            <input type="text" id="level" name="level" class="form-control" required>
+            <select id="level" name="level" class="form-select" required>
+              <option value="">-- Select Level --</option>
+              {% for level in levels %}
+                <option value="{{ level }}">{{ level }}</option>
+              {% endfor %}
+            </select>
           </div>
           <div class="col-md-6">
             <label for="admission_number" class="form-label">Admission Number</label>
