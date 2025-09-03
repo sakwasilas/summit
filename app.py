@@ -732,6 +732,34 @@ def admin_messages():
         db.close()
 
 
+''''
+count route
+'''
+@app.route('/admin/student_counts')
+def student_counts():
+    db = SessionLocal()
+    try:
+        # Total students (users with profiles)
+        total_students = db.query(func.count(StudentProfile.id)).scalar()
+
+        # Students grouped by course
+        students_by_course = (
+            db.query(Course.name, func.count(StudentProfile.id))
+            .join(StudentProfile, StudentProfile.course_id == Course.id)
+            .group_by(Course.name)
+            .all()
+        )
+
+        print("Total students:", total_students)
+        print("Students by course:", students_by_course)
+
+        return render_template(
+            'admin_dashboard.html',
+            total_students=total_students,
+            students_by_course=students_by_course
+        )
+    finally:
+        db.close()
 
 #-----------------------------
 #student functionality
@@ -792,14 +820,12 @@ def complete_profile():
             flash('Profile completed successfully!', 'success')
             return redirect(url_for('student_dashboard'))
 
-        # Get all courses for dropdown
         courses = db.query(Course).all()
 
-        # Get distinct levels for dropdown
+
         levels = db.query(Course.level).distinct().all()
         levels = [lvl[0] for lvl in levels]
 
-        # Fetch student's profile if exists
         student_profile = db.query(StudentProfile).filter_by(user_id=user.id).first()
 
         documents, videos = [], []
@@ -915,6 +941,9 @@ def view_document(document_id):
 
 '''
 student watch video'''
+from flask import Response, send_file
+import re
+
 @app.route('/watch_video/<int:video_id>')
 def watch_video(video_id):
     if 'user_id' not in session:
@@ -928,20 +957,56 @@ def watch_video(video_id):
             flash("Student profile not found.", "danger")
             return redirect(url_for('student_dashboard'))
 
-        # Check if student is blocked
         if student.blocked:
             flash("You can't access this material. Please clear the fee to regain access.", "danger")
             return redirect(url_for('student_dashboard'))
 
-        # Fetch the video
         video = db.query(Video).filter_by(id=video_id).first()
         if not video:
             return "Video not found", 404
 
-        return render_template('students/watch_video.html', video=video)
+        # Instead of passing just filename, pass full stream URL
+        return render_template(
+            'students/watch_video.html',
+            video=video,
+            stream_url=url_for('video_stream', filename=video.filename)
+        )
 
     finally:
         db.close()
+'''
+Video stream app
+'''
+@app.route('/video_stream/<filename>')
+def video_stream(filename):
+    path = os.path.join(VIDEOS_UPLOAD_FOLDER, filename)
+    file_size = os.path.getsize(path)
+    range_header = request.headers.get("Range", None)
+
+    if range_header:
+        byte1, byte2 = 0, None
+        m = re.search(r"(\d+)-(\d*)", range_header)
+        if m:
+            g = m.groups()
+            if g[0]:
+                byte1 = int(g[0])
+            if g[1]:
+                byte2 = int(g[1])
+        length = (byte2 or file_size - 1) - byte1 + 1
+        with open(path, "rb") as f:
+            f.seek(byte1)
+            data = f.read(length)
+        rv = Response(
+            data,
+            206,
+            mimetype="video/mp4",
+            content_type="video/mp4",
+            direct_passthrough=True
+        )
+        rv.headers.add("Content-Range", f"bytes {byte1}-{byte1+length-1}/{file_size}")
+        return rv
+
+    return send_file(path, mimetype="video/mp4")
 
 
 

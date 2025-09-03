@@ -189,21 +189,40 @@
     <hr>
 
     <!-- Cards -->
-    <div class="cards-container">
-      <div class="card">
-        <h5>Total Students</h5>
-        <p>0</p>
-      </div>
-      <div class="card">
-        <h5>Total Courses</h5>
-        <p>0</p>
-      </div>
-      <div class="card">
-        <h5>Pending Exams</h5>
-        <p>0</p>
-      </div>
-    </div>
+   <!-- Cards -->
+<div class="cards-container">
+  <div class="card">
+    <h5>Total Students</h5>
+    <p>{{ total_students }}</p>
   </div>
+  <div class="card">
+    <h5>Total Courses</h5>
+    <p>{{ total_courses }}</p>
+  </div>
+  <div class="card">
+    <h5>Pending Exams</h5>
+    <p>{{ pending_exams }}</p>
+  </div>
+</div>
+
+<hr>
+
+<!-- Students by Course -->
+<h3>Students by Course</h3>
+<div class="cards-container">
+  {% for course, count in students_by_course %}
+    <div class="card">
+      <h5>{{ course }}</h5>
+      <p>{{ count }}</p>
+    </div>
+  {% else %}
+    <div class="card">
+      <h5>No Courses Found</h5>
+      <p>0</p>
+    </div>
+  {% endfor %}
+</div>
+
 
 </body>
 </html>
