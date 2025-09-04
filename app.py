@@ -759,44 +759,7 @@ def delete_admin_message(message_id):
 manage activity
 '''
 from sqlalchemy import func
-@app.route("/admin/student_activity")
-def student_activity():
-    if session.get("role") != "admin":
-        return redirect(url_for("login"))
 
-    db = SessionLocal()
-    try:
-        # Total registered students
-        total_students = db.query(func.count(StudentProfile.id)).scalar()
-
-        # Count by activity type
-        total_watching_video = db.query(func.count(ActivityLog.id))\
-            .filter(ActivityLog.activity_type=="video", ActivityLog.is_active==True).scalar()
-        total_reading_document = db.query(func.count(ActivityLog.id))\
-            .filter(ActivityLog.activity_type=="document", ActivityLog.is_active==True).scalar()
-        total_doing_exam = db.query(func.count(ActivityLog.id))\
-            .filter(ActivityLog.activity_type=="exam", ActivityLog.is_active==True).scalar()
-
-        # Active students table
-        active_students = db.query(
-            StudentProfile.full_name,
-            Course.name.label("course_name"),
-            ActivityLog.activity_type
-        ).join(Course, StudentProfile.course_id==Course.id)\
-         .join(ActivityLog, ActivityLog.student_id==StudentProfile.id)\
-         .filter(ActivityLog.is_active==True)\
-         .all()
-
-        return render_template(
-            "admin/student_activity.html",
-            total_students=total_students,
-            total_watching_video=total_watching_video,
-            total_reading_document=total_reading_document,
-            total_doing_exam=total_doing_exam,
-            active_students=active_students
-        )
-    finally:
-        db.close()
 @app.route('/admin/student_activity')
 def student_activity():
     db = SessionLocal()
@@ -980,10 +943,6 @@ def student_dashboard():
     finally:
         db.close()
 
-
-'''
-student doucments and videos
-'''
 '''
 student documents and videos
 '''
