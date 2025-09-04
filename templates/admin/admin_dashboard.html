@@ -103,13 +103,14 @@
       <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Summit Tech College" width="75" height="75">
       <ol style="list-style: none; padding: 0; margin: 0;">
         <hr>
+        <li><a href="{{ url_for('manage_students') }}">Manage Students</a></li>
         <li><a href="{{ url_for('admin_messages') }}">Send message</a></li>
-        <li><a href="{{ url_for('student_activity') }}">Upload Video</a></li>
+        <li><a href="{{ url_for('student_activity') }}">Monitor activity</a></li>
         <li><a href="{{ url_for('upload_video') }}">Upload Video</a></li>
         <li><a href="{{ url_for('list_videos') }}">Manage Video</a></li>
         <li><a href="{{ url_for('upload_document') }}">Upload Documents</a></li>
         <li><a href="{{ url_for('manage_documents') }}">Manage Documents</a></li>
-        <li><a href="{{ url_for('manage_students') }}">Manage Students</a></li>
+        
         <li><a href="{{ url_for('upload_exam') }}">Upload Exam</a></li>
         <li><a href="{{ url_for('view_results') }}">View Results</a></li>
         <li><a href="{{ url_for('add_course') }}">Add Course</a></li>
