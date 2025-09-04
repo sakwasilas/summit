@@ -10,22 +10,24 @@
   </div>
 
   <!-- Documents Table -->
-  <div class="card shadow-sm">
+  <div class="card shadow-sm border-0">
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-primary">
+        <table class="table table-striped table-hover align-middle mb-0">
+          <thead class="bg-primary text-white">
             <tr>
-              <th>Title</th>
-              <th>Filename</th>
-              <th>Course</th>
-              <th>Subject</th>
-              <th class="text-center">Actions</th>
+              <th scope="col">#</th>
+              <th scope="col">📑 Title</th>
+              <th scope="col">📂 Filename</th>
+              <th scope="col">🎓 Course</th>
+              <th scope="col">📘 Subject</th>
+              <th scope="col" class="text-center">⚙ Actions</th>
             </tr>
           </thead>
           <tbody>
             {% for doc in documents %}
             <tr>
+              <td>{{ loop.index }}</td>
               <td class="fw-semibold">{{ doc.title }}</td>
               <td>{{ doc.filename }}</td>
               <td>{{ doc.course.name if doc.course else "N/A" }}</td>
@@ -41,8 +43,8 @@
             </tr>
             {% else %}
             <tr>
-              <td colspan="5" class="text-center text-muted py-3">
-                No documents available 📭
+              <td colspan="6" class="text-center text-muted py-3">
+                📭 No documents available
               </td>
             </tr>
             {% endfor %}
