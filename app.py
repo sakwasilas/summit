@@ -797,6 +797,46 @@ def student_activity():
         )
     finally:
         db.close()
+@app.route('/admin/student_activity')
+def student_activity():
+    db = SessionLocal()
+    try:
+        total_students = db.query(StudentProfile).count()
+
+        active_videos = (
+            db.query(StudentProfile.full_name, Course.name.label("course"))
+            .join(ActivityLog, ActivityLog.student_id == StudentProfile.id)
+            .join(Course, StudentProfile.course_id == Course.id)
+            .filter(ActivityLog.activity_type == "video", ActivityLog.is_active == True)
+            .all()
+        )
+
+        active_docs = (
+            db.query(StudentProfile.full_name, Course.name.label("course"))
+            .join(ActivityLog, ActivityLog.student_id == StudentProfile.id)
+            .join(Course, StudentProfile.course_id == Course.id)
+            .filter(ActivityLog.activity_type == "document", ActivityLog.is_active == True)
+            .all()
+        )
+
+        active_exams = (
+            db.query(StudentProfile.full_name, Course.name.label("course"))
+            .join(ActivityLog, ActivityLog.student_id == StudentProfile.id)
+            .join(Course, StudentProfile.course_id == Course.id)
+            .filter(ActivityLog.activity_type == "exam", ActivityLog.is_active == True)
+            .all()
+        )
+
+        return render_template(
+            "admin/student_activity.html",
+            total_students=total_students,
+            active_videos=active_videos,
+            active_docs=active_docs,
+            active_exams=active_exams
+        )
+    finally:
+        db.close()
+
 
 
 
@@ -964,6 +1004,12 @@ def view_document(document_id):
             flash("Document not found.", "error")
             return redirect(url_for('complete_profile'))
 
+        # ✅ Log student activity
+        if student:
+            log = ActivityLog(student_id=student.id, activity_type="document", is_active=True)
+            db.add(log)
+            db.commit()
+
         # resolve the actual path on disk
         document_path = os.path.join(DOCUMENTS_UPLOAD_FOLDER, document.filename)
 
@@ -979,8 +1025,7 @@ def view_document(document_id):
     finally:
         db.close()
 
-'''
-student watch video'''
+'''student watch video'''
 from flask import Response, send_file
 import re
 
@@ -1005,6 +1050,11 @@ def watch_video(video_id):
         if not video:
             return "Video not found", 404
 
+        # ✅ Log student activity (watching video)
+        log = ActivityLog(student_id=student.id, activity_type="video", is_active=True)
+        db.add(log)
+        db.commit()
+
         # Instead of passing just filename, pass full stream URL
         return render_template(
             'students/watch_video.html',
@@ -1014,6 +1064,7 @@ def watch_video(video_id):
 
     finally:
         db.close()
+
 '''
 Video stream app
 '''
