@@ -86,8 +86,8 @@
     }
 </style>
 
-</style>
 {% block content %}
+<a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
 <h2>Review Uploaded Quiz</h2>
 <p><strong>Title:</strong> {{ quiz.title }}</p>
 <p><strong>Duration:</strong> {{ quiz.duration }} minutes</p>
