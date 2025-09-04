@@ -100,13 +100,11 @@ def add_course():
             course_name = request.form['course_name']
             course_level = request.form['course_level']
 
-            # 🔍 Check if course already exists
             existing_course = db.query(Course).filter_by(name=course_name).first()
             if existing_course:
                 flash(f"Course '{course_name}' already exists!", "warning")
                 return redirect(url_for('add_course'))
 
-            # Add new course
             new_course = Course(name=course_name, level=course_level)
             db.add(new_course)
             db.commit()
@@ -180,10 +178,10 @@ admin manage course
 @app.route('/manage_courses', methods=['GET'])
 def manage_courses():
     if 'role' not in session or session['role'] != 'admin':
-        return redirect(url_for('login'))  # Redirect if the user is not an admin
+        return redirect(url_for('login'))  
     
     db = SessionLocal()
-    courses = db.query(Course).all()  # Fetch all courses from the database
+    courses = db.query(Course).all()  
     return render_template('admin/manage_courses.html', courses=courses)
 
 '''
@@ -192,7 +190,7 @@ admin add subject
 @app.route('/add_subject', methods=['GET', 'POST'])
 def add_subject():
     if 'role' not in session or session['role'] != 'admin':
-        return redirect(url_for('login'))  # Redirect if the user is not an admin
+        return redirect(url_for('login'))  
     
     db = SessionLocal()
 
@@ -200,7 +198,6 @@ def add_subject():
         subject_name = request.form['subject_name']
         course_id = request.form['course_id']
 
-        # Check if the subject already exists
         existing_subject = db.query(Subject).filter_by(name=subject_name, course_id=course_id).first()
         if existing_subject:
             flash('Subject already exists for this course!', 'danger')
@@ -304,7 +301,6 @@ def upload_exam():
             db.commit()
             flash(f"✅ Uploaded quiz with {len(questions)} question(s).", "success")
 
-            # Pass quiz.id to template so we can show the review link
             return render_template('admin/upload_exams.html', courses=courses, subjects=subjects, uploaded_quiz_id=quiz.id)
 
         return render_template('admin/upload_exams.html', courses=courses, subjects=subjects)
@@ -465,7 +461,6 @@ def manage_students():
             db.commit()
 
         elif action == 'delete' and student:
-            # Delete associated user first
             user = student.user
             if user:
                 db.delete(user)
@@ -474,7 +469,6 @@ def manage_students():
 
         return redirect(url_for('manage_students'))
 
-    # GET method: handle search query
     search_query = request.args.get('search', '').strip()
 
     if search_query:
@@ -493,12 +487,8 @@ def manage_students():
     return render_template('admin/manage_students.html', students=students, search_query=search_query)
 
 
-
-
-'''
-admin   show username and pasword
-'''
 from sqlalchemy.orm import joinedload
+
 @app.route('/show_credentials')
 def show_credentials():
     if 'role' not in session or session['role'] != 'admin':
@@ -506,12 +496,13 @@ def show_credentials():
 
     db = SessionLocal()
     try:
-        
-        users = db.query(User).options(joinedload(User.student_profile)).all()
+        # ✅ Use the correct relationship name
+        users = db.query(User).options(joinedload(User.profile)).all()
     finally:
         db.close()
 
     return render_template('admin/show_credentials.html', users=users)
+
 
 '''
 admin view all results  
@@ -531,7 +522,6 @@ def view_results():
         selected_subject = request.form.get('subject')
         export = request.form.get('export')
 
-        # Query setup
         query = db.query(Result).join(Result.quiz).join(Quiz.course).join(Quiz.subject).join(Result.student)
 
         if selected_course:
@@ -540,8 +530,6 @@ def view_results():
             query = query.filter(Quiz.subject_id == int(selected_subject))
 
         results = query.all()
-
-        # Export to Excel
         if export == 'true':
             data = []
             for r in results:
@@ -647,9 +635,7 @@ def review_uploaded_quiz(quiz_id):
         if request.method == 'POST':
             action = request.form.get('action')
             if action == 'delete':
-                # Delete questions
                 db.query(Question).filter_by(quiz_id=quiz.id).delete()
-                # Delete quiz
                 db.delete(quiz)
                 db.commit()
                 flash("❌ Quiz deleted.", "warning")
@@ -736,7 +722,7 @@ delete message route
 '''
 @app.route("/admin/messages/delete/<int:message_id>", methods=["POST"])
 def delete_admin_message(message_id):
-    # Only admins can delete
+
     if session.get("role") != "admin":
         flash("Admin access required.", "danger")
         return redirect(url_for("login"))
@@ -782,7 +768,6 @@ def student_activity():
             ActivityLog.activity_type == "exam", ActivityLog.is_active == True
         ).count()
 
-        # Build namedtuple for clean template use
         StudentActivity = namedtuple("StudentActivity", ["full_name", "course_name", "activity_type"])
 
         rows = (
@@ -817,9 +802,8 @@ def student_activity():
 def register():
     if request.method == 'POST':
         username = request.form['username']
-        password = request.form['password']  # plain text password
+        password = request.form['password']  
 
-        # Create a new user in the database
         db = SessionLocal()
         user = User(username=username, password=password)
         db.add(user)
@@ -959,29 +943,24 @@ def view_document(document_id):
 
     db = SessionLocal()
     try:
-        # check if student is blocked
         student = db.query(StudentProfile).filter_by(user_id=session['user_id']).first()
         if student and student.blocked:
             flash("You can't access this material. Please clear the fee to regain access.", "danger")
             return redirect(url_for('student_dashboard'))
 
-        # get the document
         document = db.query(Document).filter_by(id=document_id).first()
         if not document:
             flash("Document not found.", "error")
             return redirect(url_for('complete_profile'))
 
-        # ✅ Log student activity
         if student:
             db.query(ActivityLog).filter_by(student_id=student.id, is_active=True).update({"is_active": False})
             log = ActivityLog(student_id=student.id, activity_type="document", is_active=True)
             db.add(log)
             db.commit()
 
-        # resolve the actual path on disk
         document_path = os.path.join(DOCUMENTS_UPLOAD_FOLDER, document.filename)
 
-        # check file extension
         file_extension = document.filename.split('.')[-1].lower()
         if file_extension == 'pdf':
             return render_template('students/view_document.html', document=document, is_pdf=True)
@@ -1019,7 +998,6 @@ def watch_video(video_id):
         if not video:
             return "Video not found", 404
 
-        # ✅ Log student activity
         db.query(ActivityLog).filter_by(student_id=student.id, is_active=True).update({"is_active": False})
         log = ActivityLog(student_id=student.id, activity_type="video", is_active=True)
         db.add(log)
@@ -1069,8 +1047,6 @@ def video_stream(filename):
 
     return send_file(path, mimetype="video/mp4")
 
-
-
 '''
 student take exam
 '''
@@ -1096,14 +1072,12 @@ def take_exam(quiz_id):
             flash("Quiz not found.", "danger")
             return redirect(url_for('student_dashboard'))
 
-        # ✅ Log student activity
         db.query(ActivityLog).filter_by(student_id=student.id, is_active=True).update({"is_active": False})
         log = ActivityLog(student_id=student.id, activity_type="exam", is_active=True)
         db.add(log)
         db.commit()
 
         if request.method == "POST":
-            # Process answers
             score = 0
             questions = db.query(Question).filter_by(quiz_id=quiz.id).all()
             for q in questions:
@@ -1114,7 +1088,6 @@ def take_exam(quiz_id):
             result = Result(student_id=student.id, quiz_id=quiz.id, score=score, taken_at=datetime.now())
             db.add(result)
 
-            # Mark exam as finished
             db.query(ActivityLog).filter_by(student_id=student.id, activity_type="exam", is_active=True).update({"is_active": False})
             db.commit()
 
@@ -1126,7 +1099,6 @@ def take_exam(quiz_id):
 
     finally:
         db.close()
-
 
 '''
 student results
@@ -1144,7 +1116,6 @@ def student_results():
             flash("User not found.", "error")
             return redirect(url_for('logout'))
 
-        # Retrieve student's results
         results = (
             db.query(Result)
               .join(Quiz, Result.quiz_id == Quiz.id)
@@ -1156,12 +1127,6 @@ def student_results():
 
     finally:
         db.close()
-
-
-
-
-
-
 
 # -----------------------------
 # Run
