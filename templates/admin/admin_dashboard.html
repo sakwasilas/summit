@@ -9,20 +9,17 @@
       margin: 0;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
-      background-color: #f0f2f5;
+      background-color: #f5f6fa;
+      color: #2c3e50;
     }
-    hr {
-      border: 0;
-      height: 2px;
-      background: #007bff;
-      margin: 15px 0;
-      box-shadow: 0 4px 6px rgba(0, 123, 255, 0.3);
+    h1, h3, p {
+      margin: 0 0 15px;
     }
 
     /* Sidebar */
     .sidebar {
       width: 220px;
-      background-color: skyblue;
+      background: linear-gradient(180deg, #007bff, #0056b3);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -30,67 +27,176 @@
       left: 0;
       top: 0;
       bottom: 0;
+      color: white;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      transition: 0.3s;
+      z-index: 1000;
     }
     .sidebar-content {
       flex: 1;
-      overflow-y: auto;
-      padding-top: 20px;
+      padding: 20px 0;
       text-align: center;
     }
     .sidebar img {
       border-radius: 50%;
       margin-bottom: 15px;
+      border: 3px solid white;
+    }
+    .sidebar ol {
+      list-style: none;
+      padding: 0;
+      margin: 0;
     }
     .sidebar a {
       display: block;
-      color: black;
-      padding: 12px 18px;
+      color: white;
+      padding: 12px 20px;
       text-decoration: none;
-      font-weight: bold;
-      transition: background 0.2s;
+      font-weight: 500;
+      transition: all 0.3s ease;
       text-align: left;
       font-size: 15px;
+      border-radius: 6px;
+      margin: 6px 12px;
     }
     .sidebar a:hover {
-      background-color: #3498db;
-      color: white;
+      background-color: rgba(255, 255, 255, 0.2);
+      padding-left: 28px;
     }
     .logout {
       padding: 15px;
+      margin: 20px 15px;
+      display: block;
       text-align: center;
-      background: #007bff;
-      color: white;
+      background: #e74c3c;
+      border-radius: 8px;
       font-weight: bold;
-      text-decoration: none;
+      color: white;
+      transition: 0.3s;
     }
     .logout:hover {
-      background: #0056b3;
+      background: #c0392b;
     }
 
     /* Main content */
     .main-content {
       margin-left: 220px;
       flex: 1;
-      padding: 40px 20px;
-      background-color: white;
+      padding: 40px;
       min-height: 100vh;
+      transition: margin-left 0.3s;
     }
-    h1, h3, p {
-      color: black;
+    .dashboard-card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+    h1 {
+      text-align: center;
+      font-size: 26px;
+      margin-bottom: 25px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
+    /* Quick action grid */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .quick-actions a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 25px 20px;
+      text-align: center;
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      text-decoration: none;
+      color: #2c3e50;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .quick-actions a:hover {
+      background: #007bff;
+      color: white;
+      transform: translateY(-5px);
+    }
+    .quick-actions .icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+    .quick-actions p {
+      font-size: 13px;
+      font-weight: normal;
+      opacity: 0.8;
+      margin-top: 6px;
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 1024px) {
+      .main-content {
+        padding: 20px;
+      }
+      h1 {
+        font-size: 22px;
+      }
+    }
     @media (max-width: 768px) {
       body {
         flex-direction: column;
       }
       .sidebar {
-        position: relative;
         width: 100%;
         height: auto;
+        position: relative;
+        flex-direction: row;
+        justify-content: space-around;
+        padding: 10px;
+      }
+      .sidebar-content {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .sidebar ol {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        margin-left: 10px;
+      }
+      .sidebar a {
+        font-size: 14px;
+        padding: 8px 12px;
+        margin: 4px;
+        text-align: center;
       }
       .main-content {
         margin-left: 0;
-        margin-top: 10px;
+        padding: 20px;
+      }
+      .quick-actions {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+    }
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 18px;
+      }
+      .quick-actions {
+        grid-template-columns: 1fr; /* Single column on very small screens */
+      }
+      .quick-actions a {
+        padding: 18px;
+      }
+      .quick-actions .icon {
+        font-size: 24px;
       }
     }
   </style>
@@ -100,36 +206,82 @@
   <!-- Sidebar -->
   <div class="sidebar">
     <div class="sidebar-content">
-      <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Summit Tech College" width="75" height="75">
-      <ol style="list-style: none; padding: 0; margin: 0;">
-        <hr>
-        <li><a href="{{ url_for('manage_students') }}">Manage Students</a></li>
-        <li><a href="{{ url_for('admin_messages') }}">Send message</a></li>
-        <li><a href="{{ url_for('student_activity') }}">Monitor activity</a></li>
-        <li><a href="{{ url_for('upload_video') }}">Upload Video</a></li>
-        <li><a href="{{ url_for('list_videos') }}">Manage Video</a></li>
-        <li><a href="{{ url_for('upload_document') }}">Upload Documents</a></li>
-        <li><a href="{{ url_for('manage_documents') }}">Manage Documents</a></li>
-        
-        <li><a href="{{ url_for('upload_exam') }}">Upload Exam</a></li>
-        <li><a href="{{ url_for('view_results') }}">View Results</a></li>
-        <li><a href="{{ url_for('add_course') }}">Add Course</a></li>
-        <li><a href="{{ url_for('manage_courses') }}">Manage Courses</a></li>
-        <li><a href="{{ url_for('add_subject') }}">Add Subject</a></li>
-        <li><a href="{{ url_for('manage_quizzes') }}">Manage Questions</a></li>
-        <hr>
-        <li><a href="{{ url_for('show_credentials') }}">Manage Credentials</a></li>
-        <hr>
-        <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+      <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Summit Tech College" width="70" height="70">
+      <ol>
+        <li><a href="{{ url_for('manage_students') }}">👨‍🎓 Manage Students</a></li>
+        <li><a href="{{ url_for('admin_messages') }}">✉️ Messages</a></li>
+        <li><a href="{{ url_for('student_activity') }}">📊 Monitor Activity</a></li>
+        <a href="{{ url_for('logout') }}" class="logout">🚪 Logout</a>
       </ol>
     </div>
-  </div> <!-- close sidebar -->
+  </div>
 
   <!-- Main Content -->
   <div class="main-content">
-    <h1 style="text-align:center;"><u><b>SUMMIT TECHNICAL COLLEGE</b></u></h1>
-    <h3>Welcome, {{ username }}</h3>
-    <p>Admin Dashboard - Manage your application here</p>
+    <div class="dashboard-card">
+      <h1>SUMMIT TECHNICAL COLLEGE</h1>
+      <h3>Welcome, {{ username }}</h3>
+      <p>Admin Dashboard - Manage your application here</p>
+    </div>
+
+    <h3>Quick Actions</h3>
+    <div class="quick-actions">
+      <a href="{{ url_for('upload_video') }}">
+        <div class="icon">🎥</div>
+        Upload Video
+        <p>Add new learning videos for students</p>
+      </a>
+      <a href="{{ url_for('list_videos') }}">
+        <div class="icon">📂</div>
+        Manage Videos
+        <p>Edit or remove uploaded videos</p>
+      </a>
+      <a href="{{ url_for('upload_document') }}">
+        <div class="icon">📄</div>
+        Upload Documents
+        <p>Share study materials with students</p>
+      </a>
+      <a href="{{ url_for('manage_documents') }}">
+        <div class="icon">🗂</div>
+        Manage Documents
+        <p>Organize and update existing documents</p>
+      </a>
+      <a href="{{ url_for('upload_exam') }}">
+        <div class="icon">📝</div>
+        Upload Exam
+        <p>Prepare and publish exams</p>
+      </a>
+      <a href="{{ url_for('view_results') }}">
+        <div class="icon">📑</div>
+        View Results
+        <p>Check student exam results</p>
+      </a>
+      <a href="{{ url_for('add_course') }}">
+        <div class="icon">➕</div>
+        Add Course
+        <p>Create new courses</p>
+      </a>
+      <a href="{{ url_for('manage_courses') }}">
+        <div class="icon">📘</div>
+        Manage Courses
+        <p>Update or delete existing courses</p>
+      </a>
+      <a href="{{ url_for('add_subject') }}">
+        <div class="icon">📖</div>
+        Add Subject
+        <p>Add subjects to courses</p>
+      </a>
+      <a href="{{ url_for('manage_quizzes') }}">
+        <div class="icon">❓</div>
+        Manage Questions
+        <p>Create or update quiz questions</p>
+      </a>
+      <a href="{{ url_for('show_credentials') }}">
+        <div class="icon">🔑</div>
+        Manage Credentials
+        <p>Update admin/student login access</p>
+      </a>
+    </div>
   </div>
 
 </body>
