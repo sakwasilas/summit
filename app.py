@@ -758,48 +758,53 @@ def delete_admin_message(message_id):
 '''
 manage activity
 '''
-from sqlalchemy import func
+from collections import namedtuple
 
 @app.route('/admin/student_activity')
 def student_activity():
+    if session.get("role") != "admin":
+        flash("Please log in as admin.", "error")
+        return redirect(url_for("login"))
+
     db = SessionLocal()
     try:
         total_students = db.query(StudentProfile).count()
 
-        active_videos = (
-            db.query(StudentProfile.full_name, Course.name.label("course"))
+        total_watching_video = db.query(ActivityLog).filter(
+            ActivityLog.activity_type == "video", ActivityLog.is_active == True
+        ).count()
+
+        total_reading_document = db.query(ActivityLog).filter(
+            ActivityLog.activity_type == "document", ActivityLog.is_active == True
+        ).count()
+
+        total_doing_exam = db.query(ActivityLog).filter(
+            ActivityLog.activity_type == "exam", ActivityLog.is_active == True
+        ).count()
+
+        # Build namedtuple for clean template use
+        StudentActivity = namedtuple("StudentActivity", ["full_name", "course_name", "activity_type"])
+
+        rows = (
+            db.query(StudentProfile.full_name, Course.name.label("course_name"), ActivityLog.activity_type)
             .join(ActivityLog, ActivityLog.student_id == StudentProfile.id)
             .join(Course, StudentProfile.course_id == Course.id)
-            .filter(ActivityLog.activity_type == "video", ActivityLog.is_active == True)
+            .filter(ActivityLog.is_active == True)
             .all()
         )
 
-        active_docs = (
-            db.query(StudentProfile.full_name, Course.name.label("course"))
-            .join(ActivityLog, ActivityLog.student_id == StudentProfile.id)
-            .join(Course, StudentProfile.course_id == Course.id)
-            .filter(ActivityLog.activity_type == "document", ActivityLog.is_active == True)
-            .all()
-        )
-
-        active_exams = (
-            db.query(StudentProfile.full_name, Course.name.label("course"))
-            .join(ActivityLog, ActivityLog.student_id == StudentProfile.id)
-            .join(Course, StudentProfile.course_id == Course.id)
-            .filter(ActivityLog.activity_type == "exam", ActivityLog.is_active == True)
-            .all()
-        )
+        active_students = [StudentActivity(*row) for row in rows]
 
         return render_template(
             "admin/student_activity.html",
             total_students=total_students,
-            active_videos=active_videos,
-            active_docs=active_docs,
-            active_exams=active_exams
+            total_watching_video=total_watching_video,
+            total_reading_document=total_reading_document,
+            total_doing_exam=total_doing_exam,
+            active_students=active_students,
         )
     finally:
         db.close()
-
 
 
 
@@ -954,26 +959,29 @@ def view_document(document_id):
 
     db = SessionLocal()
     try:
-      
+        # check if student is blocked
         student = db.query(StudentProfile).filter_by(user_id=session['user_id']).first()
         if student and student.blocked:
             flash("You can't access this material. Please clear the fee to regain access.", "danger")
             return redirect(url_for('student_dashboard'))
 
-    
+        # get the document
         document = db.query(Document).filter_by(id=document_id).first()
         if not document:
             flash("Document not found.", "error")
             return redirect(url_for('complete_profile'))
 
-        
+        # ✅ Log student activity
         if student:
+            db.query(ActivityLog).filter_by(student_id=student.id, is_active=True).update({"is_active": False})
             log = ActivityLog(student_id=student.id, activity_type="document", is_active=True)
             db.add(log)
             db.commit()
 
+        # resolve the actual path on disk
         document_path = os.path.join(DOCUMENTS_UPLOAD_FOLDER, document.filename)
 
+        # check file extension
         file_extension = document.filename.split('.')[-1].lower()
         if file_extension == 'pdf':
             return render_template('students/view_document.html', document=document, is_pdf=True)
@@ -1011,12 +1019,12 @@ def watch_video(video_id):
         if not video:
             return "Video not found", 404
 
-    
+        # ✅ Log student activity
+        db.query(ActivityLog).filter_by(student_id=student.id, is_active=True).update({"is_active": False})
         log = ActivityLog(student_id=student.id, activity_type="video", is_active=True)
         db.add(log)
         db.commit()
 
-        
         return render_template(
             'students/watch_video.html',
             video=video,
@@ -1025,6 +1033,7 @@ def watch_video(video_id):
 
     finally:
         db.close()
+
 
 '''
 Video stream app
@@ -1065,68 +1074,56 @@ def video_stream(filename):
 '''
 student take exam
 '''
-@app.route('/student/take_exam/<int:quiz_id>', methods=['GET', 'POST'])
+@app.route('/take_exam/<int:quiz_id>', methods=["GET", "POST"])
 def take_exam(quiz_id):
-    if 'username' not in session:
-        flash('Please log in first.', 'error')
+    if 'user_id' not in session:
+        flash("Please log in first.", "warning")
         return redirect(url_for('login'))
 
     db = SessionLocal()
     try:
-        user = db.query(User).filter_by(username=session['username']).first()
-        if not user:
-            flash("User not found.", "error")
-            return redirect(url_for('logout'))
+        student = db.query(StudentProfile).filter_by(user_id=session['user_id']).first()
+        if not student:
+            flash("Student profile not found.", "danger")
+            return redirect(url_for('student_dashboard'))
+
+        if student.blocked:
+            flash("You can't access this exam. Please clear the fee to regain access.", "danger")
+            return redirect(url_for('student_dashboard'))
 
         quiz = db.query(Quiz).filter_by(id=quiz_id).first()
         if not quiz:
-            flash("Quiz not found.", "error")
+            flash("Quiz not found.", "danger")
             return redirect(url_for('student_dashboard'))
 
-        # Check for retake here
-        existing_result = db.query(Result).filter_by(student_id=user.id, quiz_id=quiz.id).first()
-        if existing_result:
-            flash("You have already taken this exam. Retakes are not allowed.", "warning")
-            return redirect(url_for('student_results', result_id=existing_result.id))
+        # ✅ Log student activity
+        db.query(ActivityLog).filter_by(student_id=student.id, is_active=True).update({"is_active": False})
+        log = ActivityLog(student_id=student.id, activity_type="exam", is_active=True)
+        db.add(log)
+        db.commit()
 
-        questions = db.query(Question).filter_by(quiz_id=quiz.id).all()
+        if request.method == "POST":
+            # Process answers
+            score = 0
+            questions = db.query(Question).filter_by(quiz_id=quiz.id).all()
+            for q in questions:
+                selected = request.form.get(str(q.id))
+                if selected and selected == q.correct_option:
+                    score += 1
 
-        if request.method == 'POST':
-            answers = request.form
-            total_score = 0
-            total_marks = 0
-
-            for question in questions:
-                selected_answer = answers.get(f"question_{question.id}")
-                print(f"Selected answer for question {question.id}: {selected_answer} | Correct answer: {question.correct_option}")
-
-                if selected_answer and selected_answer.upper() == question.correct_option.upper():
-                    total_score += question.marks
-
-                total_marks += question.marks
-
-            percentage = round((total_score / total_marks) * 100) if total_marks else 0
-
-            result = Result(  
-                student_id=user.id,
-                quiz_id=quiz.id,
-                score=total_score,
-                total_marks=total_marks,
-                percentage=percentage
-            )
+            result = Result(student_id=student.id, quiz_id=quiz.id, score=score, taken_at=datetime.now())
             db.add(result)
+
+            # Mark exam as finished
+            db.query(ActivityLog).filter_by(student_id=student.id, activity_type="exam", is_active=True).update({"is_active": False})
             db.commit()
 
-            flash(f'✅ You scored {total_score} out of {total_marks} ({percentage}%)', 'success')
+            flash(f"You scored {score} out of {len(questions)}", "success")
+            return redirect(url_for('student_dashboard'))
 
-            return redirect(url_for('student_results', result_id=result.id))
+        questions = db.query(Question).filter_by(quiz_id=quiz.id).all()
+        return render_template("students/take_exam.html", quiz=quiz, questions=questions)
 
-        return render_template('students/take_exam.html', quiz=quiz, questions=questions)
-
-    except Exception as e:
-        db.rollback()
-        flash(f"An error occurred: {str(e)}", "danger")
-        return redirect(url_for('student_dashboard'))
     finally:
         db.close()
 
