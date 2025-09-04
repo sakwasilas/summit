@@ -6,7 +6,7 @@ from datetime import datetime
 import os
 
 from connections import SessionLocal
-from models import User, Admin, Course, Subject, Question, Quiz, Video, Document,StudentProfile,Result,Message
+from models import User, Admin, Course, Subject, Question, Quiz, Video, Document,StudentProfile,Result,Message,ActivityLog
 from utils import parse_docx_questions
 
 app = Flask(__name__)
@@ -731,35 +731,75 @@ def admin_messages():
     finally:
         db.close()
 
-
-''''
-count route
 '''
-@app.route('/admin/student_counts')
-def student_counts():
+delete message route
+'''
+@app.route("/admin/messages/delete/<int:message_id>", methods=["POST"])
+def delete_admin_message(message_id):
+    # Only admins can delete
+    if session.get("role") != "admin":
+        flash("Admin access required.", "danger")
+        return redirect(url_for("login"))
+
     db = SessionLocal()
     try:
-        # Total students (users with profiles)
+        message = db.query(Message).filter_by(id=message_id).first()
+        if not message:
+            flash("Message not found.", "danger")
+        else:
+            db.delete(message)
+            db.commit()
+            flash("Message deleted successfully.", "success")
+    finally:
+        db.close()
+
+    return redirect(url_for("admin_messages"))
+
+'''
+manage activity
+'''
+from sqlalchemy import func
+@app.route("/admin/student_activity")
+def student_activity():
+    if session.get("role") != "admin":
+        return redirect(url_for("login"))
+
+    db = SessionLocal()
+    try:
+        # Total registered students
         total_students = db.query(func.count(StudentProfile.id)).scalar()
 
-        # Students grouped by course
-        students_by_course = (
-            db.query(Course.name, func.count(StudentProfile.id))
-            .join(StudentProfile, StudentProfile.course_id == Course.id)
-            .group_by(Course.name)
-            .all()
-        )
+        # Count by activity type
+        total_watching_video = db.query(func.count(ActivityLog.id))\
+            .filter(ActivityLog.activity_type=="video", ActivityLog.is_active==True).scalar()
+        total_reading_document = db.query(func.count(ActivityLog.id))\
+            .filter(ActivityLog.activity_type=="document", ActivityLog.is_active==True).scalar()
+        total_doing_exam = db.query(func.count(ActivityLog.id))\
+            .filter(ActivityLog.activity_type=="exam", ActivityLog.is_active==True).scalar()
 
-        print("Total students:", total_students)
-        print("Students by course:", students_by_course)
+        # Active students table
+        active_students = db.query(
+            StudentProfile.full_name,
+            Course.name.label("course_name"),
+            ActivityLog.activity_type
+        ).join(Course, StudentProfile.course_id==Course.id)\
+         .join(ActivityLog, ActivityLog.student_id==StudentProfile.id)\
+         .filter(ActivityLog.is_active==True)\
+         .all()
 
         return render_template(
-            'admin_dashboard.html',
+            "admin/student_activity.html",
             total_students=total_students,
-            students_by_course=students_by_course
+            total_watching_video=total_watching_video,
+            total_reading_document=total_reading_document,
+            total_doing_exam=total_doing_exam,
+            active_students=active_students
         )
     finally:
         db.close()
+
+
+
 
 #-----------------------------
 #student functionality

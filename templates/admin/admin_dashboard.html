@@ -31,21 +31,12 @@
       top: 0;
       bottom: 0;
     }
-
     .sidebar-content {
-      flex: 1; /* scrollable middle part */
+      flex: 1;
       overflow-y: auto;
       padding-top: 20px;
       text-align: center;
     }
-    .sidebar::-webkit-scrollbar {
-      width: 6px;
-    }
-    .sidebar::-webkit-scrollbar-thumb {
-      background: #007bff;
-      border-radius: 6px;
-    }
-
     .sidebar img {
       border-radius: 50%;
       margin-bottom: 15px;
@@ -64,8 +55,6 @@
       background-color: #3498db;
       color: white;
     }
-
-    /* Logout stays at bottom */
     .logout {
       padding: 15px;
       text-align: center;
@@ -84,35 +73,12 @@
       flex: 1;
       padding: 40px 20px;
       background-color: white;
-      color: black;
       min-height: 100vh;
     }
     h1, h3, p {
       color: black;
     }
 
-    /* Cards */
-    .cards-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-    .card {
-      background-color: #ffffff;
-      color: black;
-      padding: 20px;
-      border-radius: 12px;
-      text-align: center;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-      margin-bottom: 20px;
-      flex: 1 1 calc(33% - 20px);
-      max-width: 300px;
-    }
-    .card h5 {
-      font-weight: bold;
-    }
-
-    /* Responsive Design */
     @media (max-width: 768px) {
       body {
         flex-direction: column;
@@ -122,31 +88,9 @@
         width: 100%;
         height: auto;
       }
-      .sidebar-content {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-      .sidebar a {
-        flex: 1 1 45%;
-        text-align: center;
-        font-size: 14px;
-      }
       .main-content {
         margin-left: 0;
         margin-top: 10px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .sidebar-content {
-        display: block;
-      }
-      .sidebar a {
-        flex: 1 1 100%;
-      }
-      .main-content {
-        margin-left: 0;
       }
     }
   </style>
@@ -159,70 +103,33 @@
       <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Summit Tech College" width="75" height="75">
       <ol style="list-style: none; padding: 0; margin: 0;">
         <hr>
-         <li><a href="{{ url_for('admin_messages') }}">Message student</a></li>
+        <li><a href="{{ url_for('admin_messages') }}">Send message</a></li>
+        <li><a href="{{ url_for('student_activity') }}">Upload Video</a></li>
         <li><a href="{{ url_for('upload_video') }}">Upload Video</a></li>
         <li><a href="{{ url_for('list_videos') }}">Manage Video</a></li>
         <li><a href="{{ url_for('upload_document') }}">Upload Documents</a></li>
-        <li><a href="{{ url_for('manage_documents') }}">manage uploaded document</a></li>
+        <li><a href="{{ url_for('manage_documents') }}">Manage Documents</a></li>
         <li><a href="{{ url_for('manage_students') }}">Manage Students</a></li>
         <li><a href="{{ url_for('upload_exam') }}">Upload Exam</a></li>
         <li><a href="{{ url_for('view_results') }}">View Results</a></li>
         <li><a href="{{ url_for('add_course') }}">Add Course</a></li>
         <li><a href="{{ url_for('manage_courses') }}">Manage Courses</a></li>
         <li><a href="{{ url_for('add_subject') }}">Add Subject</a></li>
-        <li><a href="{{ url_for('manage_quizzes') }}">Manage Uploaded Questions</a></li>
+        <li><a href="{{ url_for('manage_quizzes') }}">Manage Questions</a></li>
         <hr>
         <li><a href="{{ url_for('show_credentials') }}">Manage Credentials</a></li>
         <hr>
         <a href="{{ url_for('logout') }}" class="logout">Logout</a>
       </ol>
     </div>
-   
-    
-  </div>
+  </div> <!-- close sidebar -->
 
   <!-- Main Content -->
   <div class="main-content">
-    <h1><center><u><b>SUMMIT TECHNICAL COLLEGE</b></u></center></h1>
+    <h1 style="text-align:center;"><u><b>SUMMIT TECHNICAL COLLEGE</b></u></h1>
     <h3>Welcome, {{ username }}</h3>
     <p>Admin Dashboard - Manage your application here</p>
-    <hr>
-
-    <!-- Cards -->
-   <!-- Cards -->
-<div class="cards-container">
-  <div class="card">
-    <h5>Total Students</h5>
-    <p>{{ total_students }}</p>
   </div>
-  <div class="card">
-    <h5>Total Courses</h5>
-    <p>{{ total_courses }}</p>
-  </div>
-  <div class="card">
-    <h5>Pending Exams</h5>
-    <p>{{ pending_exams }}</p>
-  </div>
-</div>
-
-<hr>
-
-<!-- Students by Course -->
-<h3>Students by Course</h3>
-<div class="cards-container">
-  {% for course, count in students_by_course %}
-    <div class="card">
-      <h5>{{ course }}</h5>
-      <p>{{ count }}</p>
-    </div>
-  {% else %}
-    <div class="card">
-      <h5>No Courses Found</h5>
-      <p>0</p>
-    </div>
-  {% endfor %}
-</div>
-
 
 </body>
 </html>

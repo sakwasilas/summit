@@ -206,3 +206,15 @@ class Message(Base):
 
     course = relationship("Course", backref="messages")
     subject = relationship("Subject", backref="messages")
+
+class ActivityLog(Base):
+    __tablename__ = "activity_logs"
+    
+    id = Column(Integer, primary_key=True)
+    student_id = Column(Integer, ForeignKey("student_profiles.id"))
+    activity_type = Column(String(50))  # "video", "document", "exam"
+    is_active = Column(Boolean, default=True)  # currently active
+    started_at = Column(DateTime, default=datetime.utcnow)
+    
+    student = relationship("StudentProfile", backref="activities")
+
