@@ -151,9 +151,6 @@ def edit_course(course_id):
     
     return render_template('admin/edit_course.html', course=course)
 
-'''
-admin delete a course
-'''
 @app.route('/delete_course/<int:course_id>', methods=['POST'])
 def delete_course(course_id):
     if 'role' not in session or session['role'] != 'admin':
@@ -161,16 +158,19 @@ def delete_course(course_id):
     
     db = SessionLocal()
     
-    
     course = db.query(Course).filter(Course.id == course_id).first()
     
     if not course:
         return "Course not found", 404  
     
+   
+    db.query(Document).filter(Document.course_id == course_id).delete()
+    
+    
     db.delete(course)  
     db.commit() 
     
-    return redirect(url_for('admin_dashboard')) 
+    return redirect(url_for('admin_dashboard'))
 
 '''
 admin manage course 
