@@ -44,9 +44,9 @@
   </thead>
   <tbody>
     {% if active_students %}
-      {% for idx, student in enumerate(active_students, 1) %}
+      {% for student in active_students %}
       <tr>
-        <td>{{ idx }}</td>
+        <td>{{ loop.index }}</td>
         <td>{{ student.full_name }}</td>
         <td>{{ student.course_name }}</td>
         <td>{{ student.activity_type|capitalize }}</td>
