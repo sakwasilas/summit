@@ -502,6 +502,24 @@ def show_credentials():
         db.close()
 
     return render_template('admin/show_credentials.html', users=users)
+'''
+admin delete user
+'''
+@app.route('/delete_user/<int:user_id>', methods=['POST'])
+def delete_user(user_id):
+    if 'role' not in session or session['role'] != 'admin':
+        return redirect(url_for('login'))
+
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            db.delete(user)
+            db.commit()
+    finally:
+        db.close()
+
+    return redirect(url_for('show_credentials'))
 
 
 '''
