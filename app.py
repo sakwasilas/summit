@@ -946,22 +946,22 @@ def student_dashboard():
             flash("Complete your profile before proceeding.", "warning")
             return redirect(url_for('complete_profile'))
 
-        # Quizzes for student course
+       
         available_quizzes = db.query(Quiz).filter_by(
             course_id=student_profile.course_id,
             status='active'
         ).all()
 
-        # Quizzes already taken
+        
         taken_quiz_ids = set(
             r.quiz_id for r in db.query(Result).filter_by(student_id=user.id).all()
         )
 
-        # Videos & Documents for student course
+      
         available_videos = db.query(Video).filter_by(course_id=student_profile.course_id).all()
         available_documents = db.query(Document).filter_by(course_id=student_profile.course_id).all()
 
-        # ✅ Messages: only "all" and "course"
+        
         messages = db.query(Message).filter(
             (Message.target_type == "all") |
             ((Message.target_type == "course") & (Message.course_id == student_profile.course_id))
@@ -984,6 +984,9 @@ def student_dashboard():
 '''
 student doucments and videos
 '''
+'''
+student documents and videos
+'''
 @app.route('/view_document/<int:document_id>')
 def view_document(document_id):
     if 'user_id' not in session:
@@ -992,28 +995,26 @@ def view_document(document_id):
 
     db = SessionLocal()
     try:
-        # check if student is blocked
+      
         student = db.query(StudentProfile).filter_by(user_id=session['user_id']).first()
         if student and student.blocked:
             flash("You can't access this material. Please clear the fee to regain access.", "danger")
             return redirect(url_for('student_dashboard'))
 
-        # get the document
+    
         document = db.query(Document).filter_by(id=document_id).first()
         if not document:
             flash("Document not found.", "error")
             return redirect(url_for('complete_profile'))
 
-        # ✅ Log student activity
+        
         if student:
             log = ActivityLog(student_id=student.id, activity_type="document", is_active=True)
             db.add(log)
             db.commit()
 
-        # resolve the actual path on disk
         document_path = os.path.join(DOCUMENTS_UPLOAD_FOLDER, document.filename)
 
-        # check file extension
         file_extension = document.filename.split('.')[-1].lower()
         if file_extension == 'pdf':
             return render_template('students/view_document.html', document=document, is_pdf=True)
@@ -1024,6 +1025,7 @@ def view_document(document_id):
 
     finally:
         db.close()
+
 
 '''student watch video'''
 from flask import Response, send_file
@@ -1050,12 +1052,12 @@ def watch_video(video_id):
         if not video:
             return "Video not found", 404
 
-        # ✅ Log student activity (watching video)
+    
         log = ActivityLog(student_id=student.id, activity_type="video", is_active=True)
         db.add(log)
         db.commit()
 
-        # Instead of passing just filename, pass full stream URL
+        
         return render_template(
             'students/watch_video.html',
             video=video,
