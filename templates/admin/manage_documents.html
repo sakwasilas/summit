@@ -1,36 +1,55 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-4">
-  <h2>📂 Manage Documents</h2>
-  <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
-  <table class="table table-bordered">
-    <thead>
-      <tr>
-        <th>Title</th>
-        <th>Filename</th>
-        <th>Course</th>
-        <th>Subject</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for doc in documents %}
-      <tr>
-        <td>{{ doc.title }}</td>
-        <td>{{ doc.filename }}</td>
-        <td>{{ doc.course.name if doc.course else "N/A" }}</td>
-        <td>{{ doc.subject.name if doc.subject else "N/A" }}</td>
-        <td>
-          <form action="{{ url_for('delete_document', doc_id=doc.id) }}" method="POST" style="display:inline;">
-            <button type="submit" class="btn btn-danger btn-sm"
-              onclick="return confirm('Are you sure you want to delete this document?');">
-              Delete
-            </button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<div class="container mt-5">
+  <!-- Page Title -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-primary">📂 Manage Documents</h2>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary btn-sm">
+      ← Back to Dashboard
+    </a>
+  </div>
+
+  <!-- Documents Table -->
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-primary">
+            <tr>
+              <th>Title</th>
+              <th>Filename</th>
+              <th>Course</th>
+              <th>Subject</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for doc in documents %}
+            <tr>
+              <td class="fw-semibold">{{ doc.title }}</td>
+              <td>{{ doc.filename }}</td>
+              <td>{{ doc.course.name if doc.course else "N/A" }}</td>
+              <td>{{ doc.subject.name if doc.subject else "N/A" }}</td>
+              <td class="text-center">
+                <form action="{{ url_for('delete_document', doc_id=doc.id) }}" method="POST" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-outline-danger"
+                    onclick="return confirm('Are you sure you want to delete this document?');">
+                    🗑 Delete
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-3">
+                No documents available 📭
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
