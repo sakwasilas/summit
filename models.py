@@ -119,14 +119,15 @@ class Result(Base):
     __tablename__ = 'results'
 
     id = Column(Integer, primary_key=True)
-    student_id = Column(Integer, ForeignKey('users.id'))
+    student_id = Column(Integer, ForeignKey('student_profiles.id'))  # ✅ link to StudentProfile
     quiz_id = Column(Integer, ForeignKey('quizzes.id'))
     score = Column(Integer)
     total_marks = Column(Integer)
     percentage = Column(Float)
     taken_on = Column(DateTime, default=datetime.utcnow)
 
-    student = relationship('User', backref='results')
+    student = relationship('StudentProfile', backref='results')  # ✅ connect to profile
+
 
     def __init__(self, student_id, quiz_id, score, total_marks, percentage):
         self.student_id = student_id
