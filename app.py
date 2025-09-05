@@ -1103,7 +1103,7 @@ def take_exam(quiz_id):
                 if selected and selected == q.correct_option:
                     score += 1
 
-            result = Result(student_id=student.id, quiz_id=quiz.id, score=score, taken_at=datetime.now())
+            result = Result(student_id=student.id, quiz_id=quiz.id, score=score, taken_on=datetime.now())
             db.add(result)
 
             db.query(ActivityLog).filter_by(student_id=student.id, activity_type="exam", is_active=True).update({"is_active": False})
