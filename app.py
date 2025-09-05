@@ -10,7 +10,8 @@ from models import User, Admin, Course, Subject, Question, Quiz, Video, Document
 from utils import parse_docx_questions
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB limit
+app.secret_key = '132silas456sakwa789ayanga'
 
 # -----------------------------
 # Upload folders & allowed types
