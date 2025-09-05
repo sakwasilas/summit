@@ -1090,6 +1090,7 @@ def take_exam(quiz_id):
             flash("Quiz not found.", "danger")
             return redirect(url_for('student_dashboard'))
 
+        
         db.query(ActivityLog).filter_by(student_id=student.id, is_active=True).update({"is_active": False})
         log = ActivityLog(student_id=student.id, activity_type="exam", is_active=True)
         db.add(log)
@@ -1098,18 +1099,31 @@ def take_exam(quiz_id):
         if request.method == "POST":
             score = 0
             questions = db.query(Question).filter_by(quiz_id=quiz.id).all()
+
+        
             for q in questions:
                 selected = request.form.get(str(q.id))
                 if selected and selected == q.correct_option:
                     score += 1
 
-            result = Result(student_id=student.id, quiz_id=quiz.id, score=score, taken_on=datetime.now())
+            
+            total_marks = len(questions)
+            percentage = (score / total_marks) * 100 if total_marks > 0 else 0
+
+            
+            result = Result(
+                student_id=student.id,
+                quiz_id=quiz.id,
+                score=score,
+                total_marks=total_marks,
+                percentage=percentage
+            )
             db.add(result)
 
             db.query(ActivityLog).filter_by(student_id=student.id, activity_type="exam", is_active=True).update({"is_active": False})
             db.commit()
 
-            flash(f"You scored {score} out of {len(questions)}", "success")
+            flash(f"You scored {score} out of {total_marks}", "success")
             return redirect(url_for('student_dashboard'))
 
         questions = db.query(Question).filter_by(quiz_id=quiz.id).all()
