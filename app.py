@@ -158,20 +158,32 @@ def delete_course(course_id):
         return redirect(url_for('login'))  
     
     db = SessionLocal()
-    
-    course = db.query(Course).filter(Course.id == course_id).first()
-    
-    if not course:
-        return "Course not found", 404  
-    
-   
-    db.query(Document).filter(Document.course_id == course_id).delete()
-    
-    
-    db.delete(course)  
-    db.commit() 
-    
-    return redirect(url_for('admin_dashboard'))
+    try:
+        course = db.query(Course).filter(Course.id == course_id).first()
+        if not course:
+            return "Course not found", 404  
+
+        # 🔍 Check if any students are enrolled in this course
+        enrolled_students = db.query(StudentProfile).filter(StudentProfile.course_id == course_id).count()
+        if enrolled_students > 0:
+            flash(f"Cannot delete course because {enrolled_students} student(s) are still enrolled.", "danger")
+            return redirect(url_for('manage_courses'))
+
+        # ✅ Delete related documents first
+        db.query(Document).filter(Document.course_id == course_id).delete()
+
+        # ✅ Then delete the course
+        db.delete(course)
+        db.commit()
+        flash("Course deleted successfully.", "success")
+    except Exception as e:
+        db.rollback()
+        flash(f"Error deleting course: {str(e)}", "danger")
+    finally:
+        db.close()
+
+    return redirect(url_for('manage_courses'))
+
 
 '''
 admin manage course 
