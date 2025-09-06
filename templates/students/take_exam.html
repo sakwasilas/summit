@@ -93,7 +93,7 @@
     button.submit-btn:hover {
       background-color: #0056b3;
     }
-    /* New CSS class for disabled button with red background */
+    /* Disabled button with red background */
     button.submit-btn.disabled-red {
       background-color: red !important;
       cursor: not-allowed;
@@ -122,10 +122,10 @@
           <img src="{{ url_for('static', filename='question_images/' ~ question.image) }}" alt="Question Image" />
         {% endif %}
         <div class="options">
-          <label><input type="radio" name="question_{{ question.id }}" value="A"> A. {{ question.option_a }}</label>
-          <label><input type="radio" name="question_{{ question.id }}" value="B"> B. {{ question.option_b }}</label>
-          <label><input type="radio" name="question_{{ question.id }}" value="C"> C. {{ question.option_c }}</label>
-          <label><input type="radio" name="question_{{ question.id }}" value="D"> D. {{ question.option_d }}</label>
+          <label><input type="radio" name="question_{{ question.id }}" value="a"> A. {{ question.option_a }}</label>
+          <label><input type="radio" name="question_{{ question.id }}" value="b"> B. {{ question.option_b }}</label>
+          <label><input type="radio" name="question_{{ question.id }}" value="c"> C. {{ question.option_c }}</label>
+          <label><input type="radio" name="question_{{ question.id }}" value="d"> D. {{ question.option_d }}</label>
         </div>
       </div>
     {% endfor %}
@@ -148,7 +148,7 @@
         alert("⏰ Time's up! Submitting exam...");
         submitBtn.disabled = true;
         submitBtn.textContent = 'Submitting...';
-        submitBtn.classList.add('disabled-red');  // Add red background
+        submitBtn.classList.add('disabled-red');
         form.submit();
       }
       totalSeconds--;
@@ -160,9 +160,8 @@
     form.addEventListener('submit', () => {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting...';
-      submitBtn.classList.add('disabled-red');  // Add red background
+      submitBtn.classList.add('disabled-red');
     });
   </script>
-
 </body>
 </html>
