@@ -1202,9 +1202,6 @@ def take_exam(quiz_id):
     finally:
         db.close()
 
-'''
-student results
-'''
 @app.route('/student/results')
 def student_results():
     if 'username' not in session or session.get('role') != 'student':
@@ -1213,15 +1210,24 @@ def student_results():
 
     db = SessionLocal()
     try:
+        # ✅ get user
         user = db.query(User).filter_by(username=session['username']).first()
         if not user:
             flash("User not found.", "error")
             return redirect(url_for('logout'))
 
+        # ✅ get student profile
+        student = db.query(StudentProfile).filter_by(user_id=user.id).first()
+        if not student:
+            flash("Student profile not found.", "error")
+            return redirect(url_for('logout'))
+
+        # ✅ get results linked to that student
         results = (
             db.query(Result)
               .join(Quiz, Result.quiz_id == Quiz.id)
-              .filter(Result.student_id == user.id)
+              .filter(Result.student_id == student.id)   # ✅ correct now
+              .order_by(Result.taken_on.desc())
               .all()
         )
 
@@ -1229,6 +1235,7 @@ def student_results():
 
     finally:
         db.close()
+
 
 # -----------------------------
 # Run
