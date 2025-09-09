@@ -910,64 +910,54 @@ student complete profile route
 #     finally:
 #         db.close()
 
+from flask import render_template, request, redirect, url_for, flash, session
+from sqlalchemy.exc import IntegrityError
+from models import db, StudentProfile  # adjust based on your structure
+
 @app.route('/complete_profile', methods=['GET', 'POST'])
 def complete_profile():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    db = SessionLocal()
-    user_id = session['user_id']
-
-    existing_profile = db.query(StudentProfile).filter_by(user_id=user_id).first()
-
     if request.method == 'POST':
-        full_name = request.form['full_name']
-        exam_type = request.form['exam_type']
-        course_id = request.form['course']
-        level = request.form['level']
-        admission_number = request.form['admission_number']
-        phone_number = request.form['phone_number']
+        full_name = request.form.get('full_name')
+        exam_type = request.form.get('exam_type')
+        course_id = request.form.get('course_id')
+        level = request.form.get('level')
+        admission_number = request.form.get('admission_number')
+        phone_number = request.form.get('phone_number')
+        blocked = False
+        user_id = session.get('user_id')  # or however you're storing the user
 
-        # Check for admission number duplication
-        duplicate_adm = db.query(StudentProfile).filter(
-            StudentProfile.admission_number == admission_number,
-            StudentProfile.user_id != user_id  # not this user
-        ).first()
-
-        if duplicate_adm:
-            flash("Admission number already exists. Please check your input or contact admin.", "danger")
-            return render_template('complete_profile.html', profile=existing_profile)
+        # Check if this admission number already exists
+        existing_profile = StudentProfile.query.filter_by(admission_number=admission_number).first()
 
         if existing_profile:
-            # Update existing profile
-            existing_profile.full_name = full_name
-            existing_profile.exam_type = exam_type
-            existing_profile.course_id = course_id
-            existing_profile.level = level
-            existing_profile.admission_number = admission_number
-            existing_profile.phone_number = phone_number
-        else:
-            # Create new profile
-            new_profile = StudentProfile(
-                full_name=full_name,
-                exam_type=exam_type,
-                course_id=course_id,
-                level=level,
-                admission_number=admission_number,
-                phone_number=phone_number,
-                user_id=user_id
-            )
-            db.add(new_profile)
+            flash('A profile with that admission number already exists.', 'warning')
+            return redirect(url_for('complete_profile'))
+
+        # Create a new student profile
+        new_profile = StudentProfile(
+            full_name=full_name,
+            exam_type=exam_type,
+            course_id=course_id,
+            level=level,
+            admission_number=admission_number,
+            blocked=blocked,
+            phone_number=phone_number,
+            user_id=user_id
+        )
 
         try:
-            db.commit()
-            flash("Profile saved successfully!", "success")
-            return redirect(url_for('dashboard'))  # or wherever the user should go
-        except Exception as e:
-            db.rollback()
-            flash(f"Error saving profile: {str(e)}", "danger")
+            db.session.add(new_profile)
+            db.session.commit()
+            flash('Profile completed successfully!', 'success')
+            return redirect(url_for('student_dashboard'))  
+        except IntegrityError:
+            db.session.rollback()
+            flash('An error occurred while saving your profile. Please try again.', 'danger')
+            return redirect(url_for('complete_profile'))
 
-    return render_template('complete_profile.html', profile=existing_profile)
+    # If GET request
+    return render_template('student/complete_profile.html')
+
 
 
 #student dashboard
