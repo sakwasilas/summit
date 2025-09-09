@@ -534,10 +534,7 @@ def delete_user(user_id):
 
     return redirect(url_for('show_credentials'))
 
-
-'''
-admin view all results  
-'''
+from sqlalchemy.orm import joinedload
 @app.route('/admin/view_results', methods=['GET', 'POST'])
 def view_results():
     if 'user_id' not in session or session.get('role') != 'admin':
@@ -560,13 +557,17 @@ def view_results():
         if selected_subject:
             query = query.filter(Quiz.subject_id == int(selected_subject))
 
+        # Use joinedload for eager loading StudentProfile along with results
+        query = query.options(joinedload(Result.student))
+
         results = query.all()
+
         if export == 'true':
             data = []
             for r in results:
                 data.append({
-                    'Student Username': r.student.username,
-                    'Full Name': r.student.profile.full_name if r.student.profile else 'N/A',
+                    'Student Username': r.student.user.username if r.student and r.student.user else 'N/A',
+                    'Full Name': r.student.full_name if r.student else 'N/A',
                     'Course': r.quiz.course.name if r.quiz.course else 'N/A',
                     'Subject': r.quiz.subject.name if r.quiz.subject else 'N/A',
                     'Quiz Title': r.quiz.title,
@@ -596,6 +597,8 @@ def view_results():
 
     finally:
         db.close()
+
+
 
 '''
 admin manage quizzes
