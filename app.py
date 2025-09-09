@@ -852,64 +852,122 @@ def register():
 '''
 student complete profile route
 '''
+# @app.route('/complete_profile', methods=['GET', 'POST'])
+# def complete_profile():
+#     if 'username' not in session:
+#         flash('Please log in first.', 'error')
+#         return redirect(url_for('login'))
+
+#     db = SessionLocal()
+#     try:
+#         user = db.query(User).filter_by(username=session['username']).first()
+
+#         if request.method == 'POST':
+#             full_name = request.form['full_name']
+#             exam_type = request.form['exam_type']
+#             course_id = request.form['course_id']
+#             level = request.form['level']   # now comes from dropdown
+#             admission_number = request.form['admission_number']
+#             phone_number = request.form['phone_number']
+
+#             student_profile = StudentProfile(
+#                 full_name=full_name,
+#                 exam_type=exam_type,
+#                 course_id=course_id,
+#                 level=level,
+#                 admission_number=admission_number,
+#                 phone_number=phone_number,
+#                 user_id=user.id
+#             )
+
+#             db.add(student_profile)
+#             db.commit()
+
+#             flash('Profile completed successfully!', 'success')
+#             return redirect(url_for('student_dashboard'))
+
+#         courses = db.query(Course).all()
+
+
+#         levels = db.query(Course.level).distinct().all()
+#         levels = [lvl[0] for lvl in levels]
+
+#         student_profile = db.query(StudentProfile).filter_by(user_id=user.id).first()
+
+#         documents, videos = [], []
+#         if student_profile:
+#             documents = db.query(Document).filter_by(course_id=student_profile.course_id).all()
+#             videos = db.query(Video).filter_by(course_id=student_profile.course_id).all()
+
+#         return render_template(
+#             'students/complete_profile.html',
+#             courses=courses,
+#             levels=levels,     
+#             documents=documents,
+#             videos=videos
+#         )
+
+#     finally:
+#         db.close()
+
 @app.route('/complete_profile', methods=['GET', 'POST'])
 def complete_profile():
-    if 'username' not in session:
-        flash('Please log in first.', 'error')
+    if 'user_id' not in session:
         return redirect(url_for('login'))
 
     db = SessionLocal()
-    try:
-        user = db.query(User).filter_by(username=session['username']).first()
+    user_id = session['user_id']
 
-        if request.method == 'POST':
-            full_name = request.form['full_name']
-            exam_type = request.form['exam_type']
-            course_id = request.form['course_id']
-            level = request.form['level']   # now comes from dropdown
-            admission_number = request.form['admission_number']
-            phone_number = request.form['phone_number']
+    existing_profile = db.query(StudentProfile).filter_by(user_id=user_id).first()
 
-            student_profile = StudentProfile(
+    if request.method == 'POST':
+        full_name = request.form['full_name']
+        exam_type = request.form['exam_type']
+        course_id = request.form['course']
+        level = request.form['level']
+        admission_number = request.form['admission_number']
+        phone_number = request.form['phone_number']
+
+        # Check for admission number duplication
+        duplicate_adm = db.query(StudentProfile).filter(
+            StudentProfile.admission_number == admission_number,
+            StudentProfile.user_id != user_id  # not this user
+        ).first()
+
+        if duplicate_adm:
+            flash("Admission number already exists. Please check your input or contact admin.", "danger")
+            return render_template('complete_profile.html', profile=existing_profile)
+
+        if existing_profile:
+            # Update existing profile
+            existing_profile.full_name = full_name
+            existing_profile.exam_type = exam_type
+            existing_profile.course_id = course_id
+            existing_profile.level = level
+            existing_profile.admission_number = admission_number
+            existing_profile.phone_number = phone_number
+        else:
+            # Create new profile
+            new_profile = StudentProfile(
                 full_name=full_name,
                 exam_type=exam_type,
                 course_id=course_id,
                 level=level,
                 admission_number=admission_number,
                 phone_number=phone_number,
-                user_id=user.id
+                user_id=user_id
             )
+            db.add(new_profile)
 
-            db.add(student_profile)
+        try:
             db.commit()
+            flash("Profile saved successfully!", "success")
+            return redirect(url_for('dashboard'))  # or wherever the user should go
+        except Exception as e:
+            db.rollback()
+            flash(f"Error saving profile: {str(e)}", "danger")
 
-            flash('Profile completed successfully!', 'success')
-            return redirect(url_for('student_dashboard'))
-
-        courses = db.query(Course).all()
-
-
-        levels = db.query(Course.level).distinct().all()
-        levels = [lvl[0] for lvl in levels]
-
-        student_profile = db.query(StudentProfile).filter_by(user_id=user.id).first()
-
-        documents, videos = [], []
-        if student_profile:
-            documents = db.query(Document).filter_by(course_id=student_profile.course_id).all()
-            videos = db.query(Video).filter_by(course_id=student_profile.course_id).all()
-
-        return render_template(
-            'students/complete_profile.html',
-            courses=courses,
-            levels=levels,     
-            documents=documents,
-            videos=videos
-        )
-
-    finally:
-        db.close()
-
+    return render_template('complete_profile.html', profile=existing_profile)
 
 
 #student dashboard
