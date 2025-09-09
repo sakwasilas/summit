@@ -915,50 +915,57 @@ def complete_profile():
     if 'username' not in session or session.get('role') != 'student':
         flash('Please log in as a student first.', 'error')
         return redirect(url_for('login'))
+
     db = SessionLocal()
-    from sqlalchemy.exc import IntegrityError
+    try:
+        if request.method == 'POST':
+            full_name = request.form.get('full_name')
+            exam_type = request.form.get('exam_type')
+            course_id = request.form.get('course_id')
+            level = request.form.get('level')
+            admission_number = request.form.get('admission_number')
+            phone_number = request.form.get('phone_number')
+            blocked = False
+            user_id = session.get('user_id')
 
-    if request.method == 'POST':
-        full_name = request.form.get('full_name')
-        exam_type = request.form.get('exam_type')
-        course_id = request.form.get('course_id')
-        level = request.form.get('level')
-        admission_number = request.form.get('admission_number')
-        phone_number = request.form.get('phone_number')
-        blocked = False
-        user_id = session.get('user_id')  # or however you're storing the user
+            # ✅ Use db.query instead of StudentProfile.query
+            existing_profile = db.query(StudentProfile).filter_by(admission_number=admission_number).first()
+            if existing_profile:
+                flash('A profile with that admission number already exists.', 'warning')
+                return redirect(url_for('complete_profile'))
 
-        # Check if this admission number already exists
-        existing_profile = StudentProfile.query.filter_by(admission_number=admission_number).first()
+            new_profile = StudentProfile(
+                full_name=full_name,
+                exam_type=exam_type,
+                course_id=course_id,
+                level=level,
+                admission_number=admission_number,
+                blocked=blocked,
+                phone_number=phone_number,
+                user_id=user_id
+            )
 
-        if existing_profile:
-            flash('A profile with that admission number already exists.', 'warning')
-            return redirect(url_for('complete_profile'))
+            db.add(new_profile)
+            db.commit()
+            flash('Profile completed successfully!', 'success')
+            return redirect(url_for('student_dashboard'))
 
-        # Create a new student profile
-        new_profile = StudentProfile(
-            full_name=full_name,
-            exam_type=exam_type,
-            course_id=course_id,
-            level=level,
-            admission_number=admission_number,
-            blocked=blocked,
-            phone_number=phone_number,
-            user_id=user_id
+        # ✅ If GET request, pass courses and levels to template
+        courses = db.query(Course).all()
+        levels = [lvl[0] for lvl in db.query(Course.level).distinct().all()]
+
+        return render_template(
+            'students/complete_profile.html',
+            courses=courses,
+            levels=levels
         )
 
-        try:
-            db.session.add(new_profile)
-            db.session.commit()
-            flash('Profile completed successfully!', 'success')
-            return redirect(url_for('student_dashboard'))  
-        except IntegrityError:
-            db.session.rollback()
-            flash('An error occurred while saving your profile. Please try again.', 'danger')
-            return redirect(url_for('complete_profile'))
-
-    # If GET request
-    return render_template('student/complete_profile.html')
+    except Exception as e:
+        db.rollback()
+        flash(f"An error occurred: {e}", "danger")
+        return redirect(url_for('complete_profile'))
+    finally:
+        db.close()
 
 
 
