@@ -910,12 +910,14 @@ student complete profile route
 #     finally:
 #         db.close()
 
-from flask import render_template, request, redirect, url_for, flash, session
-from sqlalchemy.exc import IntegrityError
-from models import db, StudentProfile  # adjust based on your structure
-
 @app.route('/complete_profile', methods=['GET', 'POST'])
 def complete_profile():
+    if 'username' not in session or session.get('role') != 'student':
+        flash('Please log in as a student first.', 'error')
+        return redirect(url_for('login'))
+    db = SessionLocal()
+    from sqlalchemy.exc import IntegrityError
+
     if request.method == 'POST':
         full_name = request.form.get('full_name')
         exam_type = request.form.get('exam_type')
