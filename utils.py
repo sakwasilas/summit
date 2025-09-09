@@ -150,3 +150,33 @@ def parse_docx_questions(file_stream, image_output_dir=DEFAULT_IMAGE_DIR):
 def get_quiz_status(user_id):
     # Placeholder implementation
     return "active"
+
+# -------------------------------
+# Google Drive Video Helpers
+# -------------------------------
+from urllib.parse import urlparse, parse_qs
+
+def extract_drive_id(url: str):
+    """Extract Google Drive file ID from different link formats."""
+    if not url:
+        return None
+
+    # case: https://drive.google.com/file/d/FILE_ID/view
+    m = re.search(r'/d/([a-zA-Z0-9_-]+)', url)
+    if m:
+        return m.group(1)
+
+    # case: https://drive.google.com/open?id=FILE_ID
+    try:
+        parsed = urlparse(url)
+        qs = parse_qs(parsed.query)
+        if 'id' in qs:
+            return qs['id'][0]
+    except Exception:
+        pass
+
+    return None
+
+def get_drive_embed_url(file_id: str):
+    """Get embeddable preview URL for iframe"""
+    return f"https://drive.google.com/file/d/{file_id}/preview"

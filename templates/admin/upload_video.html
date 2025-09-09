@@ -1,8 +1,7 @@
 {% block content %}
 <div class="form-container">
-  <h1>Summit Technical college</h1>
+  <h1>Summit Technical College</h1>
   <a href="{{ url_for('admin_dashboard') }}" class="back-link">← Back to Admin Dashboard</a>
-          
 
   <h2>Upload New Video</h2>
 
@@ -20,7 +19,7 @@
   {% endwith %}
 
   <!-- Upload Form -->
-  <form method="POST" enctype="multipart/form-data">
+  <form method="POST">
     <div class="form-group">
       <label for="title">Video Title</label>
       <input type="text" name="title" id="title" placeholder="Enter video title" required>
@@ -47,11 +46,11 @@
     </div>
 
     <div class="form-group">
-      <label for="video_file">Choose Video File</label>
-      <input type="file" name="video_file" id="video_file" accept="video/*" required>
+      <label for="drive_url">Google Drive Link</label>
+      <input type="url" name="drive_url" id="drive_url" placeholder="Paste Google Drive link here" required>
     </div>
 
-    <button type="submit" class="submit-btn">Upload Video</button>
+    <button type="submit" class="submit-btn">Save Video</button>
   </form>
 </div>
 
@@ -65,7 +64,7 @@
           <th>Title</th>
           <th>Course</th>
           <th>Subject</th>
-          <th>Actions</th>
+          <th>Preview</th>
         </tr>
       </thead>
       <tbody>
@@ -75,7 +74,10 @@
           <td>{{ video.course.name }}</td>
           <td>{{ video.subject.name }}</td>
           <td>
-            
+            <iframe 
+                src="{{ video.drive_url | replace('/view?usp=sharing','/preview') }}"
+                width="200" height="120" allow="autoplay">
+            </iframe>
           </td>
         </tr>
         {% endfor %}
@@ -130,7 +132,7 @@
     color: white;
   }
 
-  .alert-error {
+  .alert-danger, .alert-error {
     background-color: #dc3545;
     color: white;
   }
@@ -155,7 +157,7 @@
   }
 
   input[type="text"],
-  input[type="file"],
+  input[type="url"],
   select {
     width: 100%;
     padding: 0.8rem;
@@ -166,7 +168,7 @@
   }
 
   input[type="text"]:focus,
-  input[type="file"]:focus,
+  input[type="url"]:focus,
   select:focus {
     border-color: #3498db;
     outline: none;
@@ -206,33 +208,6 @@
   .videos-table th {
     background-color: #3498db;
     color: white;
-  }
-
-  .delete-btn {
-    background-color: #dc3545;
-    color: white;
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background 0.3s;
-  }
-
-  .delete-btn:hover {
-    background-color: #c0392b;
-  }
-
-  @media (max-width: 600px) {
-    .form-container {
-      padding: 1.5rem;
-      margin: 15px;
-    }
-    .videos-table th,
-    .videos-table td {
-      font-size: 0.9rem;
-      padding: 8px;
-    }
   }
 </style>
 {% endblock %}

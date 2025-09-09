@@ -7,7 +7,8 @@ import os
 
 from connections import SessionLocal
 from models import User, Admin, Course, Subject, Question, Quiz, Video, Document,StudentProfile,Result,Message,ActivityLog
-from utils import parse_docx_questions
+from utils import parse_docx_questions, get_quiz_status
+from utils import extract_drive_id, get_drive_embed_url
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB limit
@@ -326,27 +327,35 @@ def upload_exam():
 # -----------------------------
 @app.route('/admin/upload_video', methods=['GET', 'POST'])
 def upload_video():
-    if session.get('role') != 'admin': return redirect(url_for('login'))
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
     db = SessionLocal()
     try:
         courses, subjects = db.query(Course).all(), db.query(Subject).all()
+        videos = db.query(Video).all()
+
         if request.method == 'POST':
             title = request.form['title'].strip()
-            course_id, subject_id = int(request.form['course']), int(request.form['subject'])
-            file = request.files.get('video_file')
-            if not file or not allowed(file.filename, ALLOWED_VIDEO_EXTENSIONS):
-                flash('❌ Invalid video file.', 'danger'); return redirect(request.url)
+            course_id = int(request.form['course'])
+            subject_id = int(request.form['subject'])
+            drive_url = request.form['drive_url'].strip()  # get full URL
 
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(VIDEOS_UPLOAD_FOLDER, filename))
+            # Optional: basic validation for Google Drive URL
+            if "drive.google.com" not in drive_url:
+                flash("❌ Invalid Google Drive link.", "danger")
+                return redirect(request.url)
 
-            db.add(Video(title=title, course_id=course_id, subject_id=subject_id, filename=filename))
+            db.add(Video(title=title, course_id=course_id, subject_id=subject_id, drive_url=drive_url))
             db.commit()
             flash(f"✅ Video '{title}' uploaded!", "success")
             return redirect(url_for('upload_video'))
-        return render_template('admin/upload_video.html', courses=courses, subjects=subjects)
+
+        return render_template('admin/upload_video.html', courses=courses, subjects=subjects, videos=videos)
     finally:
         db.close()
+
+
 '''
 admin delete video
 '''
@@ -831,6 +840,9 @@ def student_activity():
 #-----------------------------
 #student functionality
 #----------------------------
+#-----------------------------
+#student functionality
+#----------------------------
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -847,69 +859,7 @@ def register():
         return redirect(url_for('login'))
     return render_template('students/student_register.html')
 
-
-
-'''
-student complete profile route
-'''
-# @app.route('/complete_profile', methods=['GET', 'POST'])
-# def complete_profile():
-#     if 'username' not in session:
-#         flash('Please log in first.', 'error')
-#         return redirect(url_for('login'))
-
-#     db = SessionLocal()
-#     try:
-#         user = db.query(User).filter_by(username=session['username']).first()
-
-#         if request.method == 'POST':
-#             full_name = request.form['full_name']
-#             exam_type = request.form['exam_type']
-#             course_id = request.form['course_id']
-#             level = request.form['level']   # now comes from dropdown
-#             admission_number = request.form['admission_number']
-#             phone_number = request.form['phone_number']
-
-#             student_profile = StudentProfile(
-#                 full_name=full_name,
-#                 exam_type=exam_type,
-#                 course_id=course_id,
-#                 level=level,
-#                 admission_number=admission_number,
-#                 phone_number=phone_number,
-#                 user_id=user.id
-#             )
-
-#             db.add(student_profile)
-#             db.commit()
-
-#             flash('Profile completed successfully!', 'success')
-#             return redirect(url_for('student_dashboard'))
-
-#         courses = db.query(Course).all()
-
-
-#         levels = db.query(Course.level).distinct().all()
-#         levels = [lvl[0] for lvl in levels]
-
-#         student_profile = db.query(StudentProfile).filter_by(user_id=user.id).first()
-
-#         documents, videos = [], []
-#         if student_profile:
-#             documents = db.query(Document).filter_by(course_id=student_profile.course_id).all()
-#             videos = db.query(Video).filter_by(course_id=student_profile.course_id).all()
-
-#         return render_template(
-#             'students/complete_profile.html',
-#             courses=courses,
-#             levels=levels,     
-#             documents=documents,
-#             videos=videos
-#         )
-
-#     finally:
-#         db.close()
-
+''''student complete profile'''
 @app.route('/complete_profile', methods=['GET', 'POST'])
 def complete_profile():
     if 'username' not in session or session.get('role') != 'student':
@@ -1065,43 +1015,54 @@ def view_document(document_id):
 
 
 '''student watch video'''
-from flask import Response, send_file
-import re
-
-@app.route('/watch_video/<int:video_id>')
+@app.route("/watch_video/<int:video_id>")
 def watch_video(video_id):
-    if 'user_id' not in session:
-        flash("Please log in first.", "warning")
-        return redirect(url_for('login'))
-
     db = SessionLocal()
-    try:
-        student = db.query(StudentProfile).filter_by(user_id=session['user_id']).first()
-        if not student:
-            flash("Student profile not found.", "danger")
-            return redirect(url_for('student_dashboard'))
+    
+    
+    user_id = session.get("user_id")
+    if not user_id:
+        flash("Please log in first.")
+        return redirect(url_for("login"))
+    
+    student = db.query(StudentProfile).filter_by(user_id=user_id).first()
+    if not student:
+        flash("Profile not found.")
+        return redirect(url_for("login"))
+    
+    if student.blocked:
+        flash("You are blocked from accessing this content.")
+        return redirect(url_for("dashboard"))
+    
+    
+    video = db.query(Video).filter_by(id=video_id).first()
+    if not video:
+        flash("Video not found.")
+        return redirect(url_for("dashboard"))
+    
+    
+    file_id = extract_drive_id(video.drive_url)
+    if not file_id:
+        flash("Invalid video link.")
+        return redirect(url_for("dashboard"))
+    
+    embed_url = get_drive_embed_url(file_id)
+    
+   
+    db.query(ActivityLog).filter_by(student_id=student.id, activity_type="video", is_active=True).update({"is_active": False})
+    
+    new_activity = ActivityLog(
+        student_id=student.id,
+        activity_type="video",
+        is_active=True,
+        started_at=datetime.utcnow()
+    )
+    db.add(new_activity)
+    db.commit()
+    
+    
+    return render_template("students/watch_video.html", video=video, embed_url=embed_url)
 
-        if student.blocked:
-            flash("You can't access this material. Please clear the fee to regain access.", "danger")
-            return redirect(url_for('student_dashboard'))
-
-        video = db.query(Video).filter_by(id=video_id).first()
-        if not video:
-            return "Video not found", 404
-
-        db.query(ActivityLog).filter_by(student_id=student.id, is_active=True).update({"is_active": False})
-        log = ActivityLog(student_id=student.id, activity_type="video", is_active=True)
-        db.add(log)
-        db.commit()
-
-        return render_template(
-            'students/watch_video.html',
-            video=video,
-            stream_url=url_for('video_stream', filename=video.filename)
-        )
-
-    finally:
-        db.close()
 
 
 '''
@@ -1141,69 +1102,6 @@ def video_stream(filename):
 '''
 student take exam
 '''
-# @app.route('/take_exam/<int:quiz_id>', methods=["GET", "POST"])
-# def take_exam(quiz_id):
-#     if 'user_id' not in session:
-#         flash("Please log in first.", "warning")
-#         return redirect(url_for('login'))
-
-#     db = SessionLocal()
-#     try:
-#         student = db.query(StudentProfile).filter_by(user_id=session['user_id']).first()
-#         if not student:
-#             flash("Student profile not found.", "danger")
-#             return redirect(url_for('student_dashboard'))
-
-#         if student.blocked:
-#             flash("You can't access this exam. Please clear the fee to regain access.", "danger")
-#             return redirect(url_for('student_dashboard'))
-
-#         quiz = db.query(Quiz).filter_by(id=quiz_id).first()
-#         if not quiz:
-#             flash("Quiz not found.", "danger")
-#             return redirect(url_for('student_dashboard'))
-
-        
-#         db.query(ActivityLog).filter_by(student_id=student.id, is_active=True).update({"is_active": False})
-#         log = ActivityLog(student_id=student.id, activity_type="exam", is_active=True)
-#         db.add(log)
-#         db.commit()
-
-#         if request.method == "POST":
-#             score = 0
-#             questions = db.query(Question).filter_by(quiz_id=quiz.id).all()
-
-        
-#             for q in questions:
-#                 selected = request.form.get(str(q.id))
-#                 if selected and selected == q.correct_option:
-#                     score += 1
-
-            
-#             total_marks = len(questions)
-#             percentage = (score / total_marks) * 100 if total_marks > 0 else 0
-
-            
-#             result = Result(
-#                 student_id=student.id,
-#                 quiz_id=quiz.id,
-#                 score=score,
-#                 total_marks=total_marks,
-#                 percentage=percentage
-#             )
-#             db.add(result)
-
-#             db.query(ActivityLog).filter_by(student_id=student.id, activity_type="exam", is_active=True).update({"is_active": False})
-#             db.commit()
-
-#             flash(f"You scored {score} out of {total_marks}", "success")
-#             return redirect(url_for('student_dashboard'))
-
-#         questions = db.query(Question).filter_by(quiz_id=quiz.id).all()
-#         return render_template("students/take_exam.html", quiz=quiz, questions=questions)
-
-#     finally:
-#         db.close()
 @app.route('/take_exam/<int:quiz_id>', methods=["GET", "POST"])
 def take_exam(quiz_id):
     if 'user_id' not in session:
@@ -1212,41 +1110,40 @@ def take_exam(quiz_id):
 
     db = SessionLocal()
     try:
-        # ✅ get student profile
+        
         student = db.query(StudentProfile).filter_by(user_id=session['user_id']).first()
         if not student:
             flash("Student profile not found.", "danger")
             return redirect(url_for('student_dashboard'))
 
-        # ✅ block check
+        
         if student.blocked:
             flash("You can't access this exam. Please clear the fee to regain access.", "danger")
             return redirect(url_for('student_dashboard'))
 
-        # ✅ get quiz
+       
         quiz = db.query(Quiz).filter_by(id=quiz_id).first()
         if not quiz:
             flash("Quiz not found.", "danger")
             return redirect(url_for('student_dashboard'))
 
-        # ✅ deactivate previous activities and log new one
+        
         db.query(ActivityLog).filter_by(student_id=student.id, is_active=True).update({"is_active": False})
         log = ActivityLog(student_id=student.id, activity_type="exam", is_active=True)
         db.add(log)
         db.commit()
 
-        # ✅ exam submission
+       
         if request.method == "POST":
             score = 0
             total_marks = 0
             questions = db.query(Question).filter_by(quiz_id=quiz.id).all()
 
             for q in questions:
-                selected = request.form.get(f"question_{q.id}")  # match input name
-                total_marks += q.marks  # sum total marks
-
-                if selected and selected == q.correct_option:  # compare with "a"/"b"/"c"/"d"
-                    score += q.marks  # ✅ give actual marks, not just +1
+                selected = request.form.get(f"question_{q.id}") 
+                total_marks += q.marks  
+                if selected and selected == q.correct_option: 
+                    score += q.marks  
 
             percentage = (score / total_marks) * 100 if total_marks > 0 else 0
 
@@ -1260,7 +1157,7 @@ def take_exam(quiz_id):
             )
             db.add(result)
 
-            # ✅ close activity log
+            
             db.query(ActivityLog).filter_by(student_id=student.id, activity_type="exam", is_active=True).update({"is_active": False})
             db.commit()
 

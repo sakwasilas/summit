@@ -142,13 +142,14 @@ class Video(Base):
     
     id = Column(Integer, primary_key=True)
     title = Column(String(255), nullable=False)
-    filename = Column(String(255), nullable=False)
+    drive_url = Column(String(500), nullable=False)   
     course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)
     subject_id = Column(Integer, ForeignKey('subjects.id'), nullable=False)
     upload_time = Column(DateTime, default=datetime.utcnow)
 
     course = relationship("Course", backref="videos")
     subject = relationship("Subject", backref="videos")
+
 
 
 class Document(Base):

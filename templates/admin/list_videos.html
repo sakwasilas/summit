@@ -13,7 +13,7 @@
         h1 {
             text-align: center;
             color: #2c3e50;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         a.upload-btn {
@@ -23,7 +23,7 @@
             padding: 10px 15px;
             text-decoration: none;
             border-radius: 6px;
-            margin-bottom: 20px;
+            margin: 10px 5px;
             transition: background 0.3s;
         }
 
@@ -55,8 +55,7 @@
             background: #f2f8ff;
         }
 
-        video {
-            max-width: 250px;
+        iframe {
             border-radius: 6px;
         }
 
@@ -83,39 +82,19 @@
         }
 
         @media (max-width: 768px) {
-            table, thead, tbody, th, td, tr {
-                display: block;
-                width: 100%;
-            }
-            thead {
-                display: none;
-            }
-            tr {
-                margin-bottom: 15px;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                padding: 10px;
-                background: #fff;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            }
-            td {
-                display: flex;
-                justify-content: space-between;
-                padding: 10px;
-                border: none;
-                border-bottom: 1px solid #eee;
-            }
-            td:last-child {
-                border-bottom: none;
-            }
+            table, thead, tbody, th, td, tr { display: block; width: 100%; }
+            thead { display: none; }
+            tr { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+            td { display: flex; justify-content: space-between; padding: 10px; border: none; border-bottom: 1px solid #eee; }
+            td:last-child { border-bottom: none; }
         }
     </style>
 </head>
 <body>
     <h1>Summit Technical College</h1>
     <h1>Uploaded Videos</h1>
-    <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
-
+    
+    <a href="{{ url_for('admin_dashboard') }}" class="upload-btn">⬅ Back to Dashboard</a>
     <a href="{{ url_for('upload_video') }}" class="upload-btn">📤 Upload New Video</a>
 
     {% if videos %}
@@ -132,10 +111,8 @@
             <tr>
                 <td>{{ video.title }}</td>
                 <td>
-                    <video controls>
-                        <source src="{{ url_for('static', filename='uploads/videos/' + video.filename) }}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
+                    <!-- Google Drive preview -->
+                    <iframe src="{{ video.drive_url | replace('view?usp=drive_link','preview') }}" width="250" height="150" allow="autoplay"></iframe>
                 </td>
                 <td>
                     <form action="{{ url_for('delete_video', video_id=video.id) }}" method="POST" style="display:inline;">
