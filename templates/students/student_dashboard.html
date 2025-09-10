@@ -101,7 +101,7 @@
             <thead class="table-light">
               <tr>
                 <th>Title</th>
-                <th>Description</th>
+                
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -110,7 +110,7 @@
               {% for exam in quizzes %}
               <tr>
                 <td>{{ exam.title }}</td>
-                <td>{{ exam.description }}</td>
+                
                 <td>
                   {% if exam.status == 'active' %}
                     <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Active</span>
@@ -142,7 +142,7 @@
             <thead class="table-light">
               <tr>
                 <th>Title</th>
-                <th>Description</th>
+                
                 <th>Action</th>
               </tr>
             </thead>
@@ -150,7 +150,7 @@
               {% for document in documents %}
               <tr>
                 <td>{{ document.title }}</td>
-                <td>{{ document.description }}</td>
+                
                 <td><a href="{{ url_for('view_document', document_id=document.id) }}" class="btn btn-sm btn-info">View</a></td>
               </tr>
               {% else %}
@@ -169,7 +169,7 @@
             <thead class="table-light">
               <tr>
                 <th>Title</th>
-                <th>Description</th>
+                
                 <th>Action</th>
               </tr>
             </thead>
@@ -177,7 +177,7 @@
               {% for video in videos %}
               <tr>
                 <td>{{ video.title }}</td>
-                <td>{{ video.description }}</td>
+                
                 <td><a href="{{ url_for('watch_video', video_id=video.id) }}" class="btn btn-sm btn-success">Watch</a></td>
               </tr>
               {% else %}
