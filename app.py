@@ -361,18 +361,23 @@ admin delete video
 '''
 @app.route('/admin/delete_video/<int:video_id>', methods=['POST'])
 def delete_video(video_id):
-    if session.get('role') != 'admin': return redirect(url_for('login'))
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
     db = SessionLocal()
     try:
-        video = db.query(Video).get(video_id)
-        if not video: flash('Video not found.', 'danger'); return redirect(url_for('upload_video'))
-        path = os.path.join(VIDEOS_UPLOAD_FOLDER, video.filename)
-        if os.path.exists(path): os.remove(path)
-        db.delete(video); db.commit()
-        flash("Video deleted.", "success")
+        video = db.get(Video, video_id)  # safer than .query().get()
+        if not video:
+            flash('Video not found.', 'danger')
+            return redirect(url_for('upload_video'))
+
+        db.delete(video)  # delete only from DB
+        db.commit()
+        flash("✅ Video deleted.", "success")
         return redirect(url_for('upload_video'))
     finally:
         db.close()
+
 
 
 # -----------------------------
