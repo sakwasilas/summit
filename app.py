@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash,Response
 from werkzeug.utils import secure_filename
 import pandas as pd
 from flask import send_file
 from datetime import datetime
+
 import os
+import re
 
 from connections import SessionLocal
 from models import User, Admin, Course, Subject, Question, Quiz, Video, Document,StudentProfile,Result,Message,ActivityLog
@@ -366,12 +368,12 @@ def delete_video(video_id):
 
     db = SessionLocal()
     try:
-        video = db.get(Video, video_id)  # safer than .query().get()
+        video = db.get(Video, video_id)  
         if not video:
             flash('Video not found.', 'danger')
             return redirect(url_for('upload_video'))
 
-        db.delete(video)  # delete only from DB
+        db.delete(video)  
         db.commit()
         flash("✅ Video deleted.", "success")
         return redirect(url_for('upload_video'))
@@ -849,6 +851,8 @@ def student_activity():
 #student functionality
 #----------------------------
 
+@from sqlalchemy.exc import IntegrityError
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -856,13 +860,31 @@ def register():
         password = request.form['password']  
 
         db = SessionLocal()
-        user = User(username=username, password=password)
-        db.add(user)
-        db.commit()
+        try:
+            # Check if user already exists
+            existing = db.query(User).filter_by(username=username).first()
+            if existing:
+                flash('❌ Username already exists. Please choose another one.', 'danger')
+                return redirect(url_for('register'))
 
-        flash('Registration successful! Please log in.', 'success')
-        return redirect(url_for('login'))
+            # Add new user
+            user = User(username=username, password=password)
+            db.add(user)
+            db.commit()
+
+            flash('✅ Registration successful! Please log in.', 'success')
+            return redirect(url_for('login'))
+
+        except IntegrityError:
+            db.rollback()  # important, otherwise PendingRollbackError later
+            flash('❌ Error: Username already exists.', 'danger')
+            return redirect(url_for('register'))
+
+        finally:
+            db.close()
+
     return render_template('students/student_register.html')
+
 
 ''''student complete profile'''
 @app.route('/complete_profile', methods=['GET', 'POST'])
