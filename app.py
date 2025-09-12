@@ -851,7 +851,7 @@ def student_activity():
 #student functionality
 #----------------------------
 
-@from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
