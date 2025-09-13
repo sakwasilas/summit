@@ -42,6 +42,19 @@
 
     <div class="login-form">
         <h3 class="text-center">Login</h3>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ 'success' if category=='success' else 'danger' if category=='danger' else 'secondary' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
         <form method="POST">
             <div class="form-group">
                 <label for="username">Username (or Student No):</label>
