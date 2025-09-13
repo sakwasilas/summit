@@ -879,7 +879,6 @@ def register():
     return render_template('students/register.html')
 
 
-
 ''''student complete profile'''
 @app.route('/complete_profile', methods=['GET', 'POST'])
 def complete_profile():
@@ -939,8 +938,8 @@ def complete_profile():
         db.close()
 
 
-
 #student dashboard
+''''student dashboard'''
 
 @app.route('/student/dashboard')
 def student_dashboard():
