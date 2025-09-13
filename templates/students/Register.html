@@ -3,40 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Registration</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Register</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f4f4f4;
+            padding-top: 100px;
+        }
+        .register-form {
+            width: 350px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
-<body class="container mt-4">
-    <h1 class="text-center mb-4"><b>Summit Technical College</b></h1>
-    <h2 class="mb-4">Student Registration</h2>
+<body>
 
-    <!-- Flash messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ 'success' if category=='success' else 'danger' if category=='danger' else 'secondary' }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+    <div class="register-form">
+        <h3 class="text-center">Register</h3>
 
-    <!-- Registration form -->
-    <form action="{{ url_for('register') }}" method="POST" class="card p-4 shadow-sm">
-        <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" id="username" name="username" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" id="password" name="password" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Register</button>
-    </form>
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ 'success' if category=='success' else 'danger' }} alert-dismissible fade show mt-2 flash-message" role="alert">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
 
-    <!-- Bootstrap JS (for alerts close button) -->
+        <form method="POST">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" name="username" class="form-control"
+                       value="{{ username if username else '' }}"
+                       placeholder="Choose a username" required>
+            </div>
+
+            <div class="form-group mt-3">
+                <label for="password">Password:</label>
+                <input type="password" name="password" class="form-control" placeholder="Choose a password" required>
+            </div>
+
+            <button type="submit" class="btn btn-success btn-block mt-3">Register</button>
+        </form>
+
+        <a href="{{ url_for('login') }}" class="d-block text-center mt-3">Already have an account? Login</a>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Auto-hide flash after 3 seconds -->
+    <script>
+      setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(el => {
+          el.classList.remove('show');
+          setTimeout(() => el.remove(), 500); // remove from DOM after fade
+        });
+      }, 3000); // 3 seconds
+    </script>
 </body>
 </html>

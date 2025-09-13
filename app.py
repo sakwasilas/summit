@@ -847,13 +847,9 @@ def student_activity():
 #-----------------------------
 #student functionality
 #----------------------------
-#-----------------------------
-#student functionality
-#----------------------------
 
 from sqlalchemy.exc import IntegrityError
 
-from sqlalchemy.exc import IntegrityError
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -867,7 +863,8 @@ def register():
             existing = db.query(User).filter_by(username=username).first()
             if existing:
                 flash('❌ Username already exists. Please choose another one.', 'danger')
-                return redirect(url_for('register'))
+                # 🚨 Stay on register page
+                return render_template('students/register.html', username=username)
 
             # Add new user
             user = User(username=username, password=password)
@@ -875,18 +872,17 @@ def register():
             db.commit()
 
             flash('✅ Registration successful! Please log in.', 'success')
-            return redirect(url_for('login'))  # ✅ show flash on login page
+            return redirect(url_for('login'))
 
         except IntegrityError:
             db.rollback()
             flash('❌ Error: Username already exists.', 'danger')
-            return redirect(url_for('register'))
+            return render_template('students/register.html', username=username)
 
         finally:
             db.close()
 
-    return render_template('students/student_register.html')
-
+    return render_template('students/register.html')
 
 
 ''''student complete profile'''
