@@ -858,7 +858,7 @@ def register():
             existing = db.query(User).filter_by(username=username).first()
             if existing:
                 flash('❌ Username already exists. Please choose another one.', 'danger')
-                return render_template('students/register.html', username=username)
+                return render_template('students/Register.html', username=username)
 
             # Add new user
             user = User(username=username, password=password)
@@ -871,12 +871,12 @@ def register():
         except IntegrityError:
             db.rollback()
             flash('❌ Error: Username already exists.', 'danger')
-            return render_template('students/register.html', username=username)
+            return render_template('students/Register.html', username=username)
 
         finally:
             db.close()
 
-    return render_template('students/register.html')
+    return render_template('students/Register.html')
 
 
 ''''student complete profile'''
