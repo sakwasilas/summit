@@ -841,15 +841,11 @@ def student_activity():
     finally:
         db.close()
 
-
-
-
 #-----------------------------
 #student functionality
 #----------------------------
 
 from sqlalchemy.exc import IntegrityError
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
