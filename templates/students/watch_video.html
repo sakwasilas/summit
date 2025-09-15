@@ -86,7 +86,9 @@
     <!-- Main Content -->
     <div class="content">
         <h2>{{ video.title }}</h2>
-        p><strong>Level:</strong> {{ video.course.level }}</p>  
+        <p><strong>Course:</strong> {{ video.course.name }}</p>
+        <p><strong>Level:</strong> {{ video.course.level }}</p>
+        <p><strong>Subject:</strong> {{ video.subject.name }}</p>
 
         <!-- Google Drive Embed with Fullscreen -->
         <div class="video-container">

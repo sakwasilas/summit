@@ -1,4 +1,126 @@
-{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Video - Summit Technical College</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    .form-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 800px;
+      margin: 20px auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    h1, h2 {
+      color: #333;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 15px;
+      text-decoration: none;
+      color: #007bff;
+      font-weight: bold;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #444;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .submit-btn {
+      background: #007bff;
+      color: #fff;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .submit-btn:hover {
+      background: #0056b3;
+    }
+
+    .flash-messages {
+      margin-bottom: 20px;
+    }
+    .alert {
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+    }
+    .alert-danger {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .close-btn {
+      float: right;
+      border: none;
+      background: transparent;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .videos-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .videos-table th, .videos-table td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+
+    .videos-table th {
+      background: #007bff;
+      color: #fff;
+    }
+
+    .videos-table tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+
+    iframe {
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
 <div class="form-container">
   <h1>Summit Technical College</h1>
   <a href="{{ url_for('admin_dashboard') }}" class="back-link">← Back to Admin Dashboard</a>
@@ -30,7 +152,7 @@
       <select name="course" id="course" required>
         <option value="">-- Select Course --</option>
         {% for course in courses %}
-          <option value="{{ course.id }}">{{ course.name }}</option>
+          <option value="{{ course.id }}">{{ course.name }} ({{ course.level }})</option>
         {% endfor %}
       </select>
     </div>
@@ -63,6 +185,7 @@
         <tr>
           <th>Title</th>
           <th>Course</th>
+          <th>Level</th>
           <th>Subject</th>
           <th>Preview</th>
         </tr>
@@ -72,6 +195,7 @@
         <tr>
           <td>{{ video.title }}</td>
           <td>{{ video.course.name }}</td>
+          <td>{{ video.course.level }}</td>
           <td>{{ video.subject.name }}</td>
           <td>
             <iframe 
@@ -88,126 +212,5 @@
   {% endif %}
 </div>
 
-<style>
-  /* Form Container */
-  .form-container {
-    background-color: #fff;
-    padding: 2rem;
-    max-width: 800px;
-    margin: 30px auto;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  }
-
-  .back-link {
-    display: inline-block;
-    margin-bottom: 15px;
-    text-decoration: none;
-    color: #3498db;
-    font-weight: bold;
-  }
-
-  .back-link:hover {
-    text-decoration: underline;
-  }
-
-  h2 {
-    text-align: center;
-    color: #007bff;
-    margin-bottom: 25px;
-  }
-
-  .flash-messages .alert {
-    padding: 12px 15px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.95rem;
-  }
-
-  .alert-success {
-    background-color: #28a745;
-    color: white;
-  }
-
-  .alert-danger, .alert-error {
-    background-color: #dc3545;
-    color: white;
-  }
-
-  .close-btn {
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 1.2rem;
-    cursor: pointer;
-  }
-
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-
-  label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 500;
-    color: #333;
-  }
-
-  input[type="text"],
-  input[type="url"],
-  select {
-    width: 100%;
-    padding: 0.8rem;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    transition: border 0.3s;
-  }
-
-  input[type="text"]:focus,
-  input[type="url"]:focus,
-  select:focus {
-    border-color: #3498db;
-    outline: none;
-  }
-
-  .submit-btn {
-    background-color: #3498db;
-    color: #fff;
-    padding: 0.9rem;
-    font-size: 1rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 6px;
-    width: 100%;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-
-  .submit-btn:hover {
-    background-color: #2980b9;
-  }
-
-  /* Uploaded Videos Table */
-  .videos-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-  }
-
-  .videos-table th,
-  .videos-table td {
-    padding: 12px 10px;
-    border: 1px solid #ccc;
-    text-align: left;
-  }
-
-  .videos-table th {
-    background-color: #3498db;
-    color: white;
-  }
-</style>
-{% endblock %}
+</body>
+</html>

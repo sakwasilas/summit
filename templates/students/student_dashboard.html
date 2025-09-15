@@ -140,6 +140,8 @@
             <thead class="table-light">
               <tr>
                 <th>Title</th>
+                <th>Course</th>
+                <th>Subject</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -147,11 +149,13 @@
               {% for document in documents %}
               <tr>
                 <td>{{ document.title }}</td>
+                <td>{{ document.course.name }}</td>
+                <td>{{ document.subject.name }}</td>
                 <td><a href="{{ url_for('view_document', document_id=document.id) }}" class="btn btn-sm btn-info">View</a></td>
               </tr>
               {% else %}
               <tr>
-                <td colspan="2" class="text-center">No documents available at the moment.</td>
+                <td colspan="4" class="text-center">No documents available at the moment.</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -165,6 +169,9 @@
             <thead class="table-light">
               <tr>
                 <th>Title</th>
+                <th>Course</th>
+                <th>Level</th>
+                <th>Subject</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -172,11 +179,14 @@
               {% for video in videos %}
               <tr>
                 <td>{{ video.title }}</td>
+                <td>{{ video.course.name }}</td>
+                <td>{{ video.course.level }}</td>
+                <td>{{ video.subject.name }}</td>
                 <td><a href="{{ url_for('watch_video', video_id=video.id) }}" class="btn btn-sm btn-success">Watch</a></td>
               </tr>
               {% else %}
               <tr>
-                <td colspan="2" class="text-center">No videos available at the moment.</td>
+                <td colspan="5" class="text-center">No videos available at the moment.</td>
               </tr>
               {% endfor %}
             </tbody>
