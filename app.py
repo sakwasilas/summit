@@ -879,74 +879,106 @@ def register():
     return render_template('students/Register.html')
 
 
-@app.route('/complete_profile', methods=['GET', 'POST'])
+# @app.route('/complete_profile', methods=['GET', 'POST'])
+# def complete_profile():
+#     if 'username' not in session or session.get('role') != 'student':
+#         flash('Please log in as a student first.', 'error')
+#         return redirect(url_for('login'))
+
+#     db = SessionLocal()
+#     try:
+#         user_id = session.get('user_id')
+
+#         if request.method == 'POST':
+#             full_name = request.form.get('full_name')
+#             exam_type = request.form.get('exam_type')
+#             course_id = request.form.get('course_id')
+#             admission_number = request.form.get('admission_number')
+#             phone_number = request.form.get('phone_number')
+#             blocked = False
+
+#             # Ensure course_id is integer
+#             try:
+#                 course_id = int(course_id)
+#             except:
+#                 flash('Invalid course selected.', 'danger')
+#                 return redirect(url_for('complete_profile'))
+
+#             selected_course = db.query(Course).filter_by(id=course_id).first()
+#             if not selected_course:
+#                 flash("Invalid course selected.", "danger")
+#                 return redirect(url_for('complete_profile'))
+
+#             existing_profile = db.query(StudentProfile).filter_by(admission_number=admission_number).first()
+#             if existing_profile:
+#                 flash('A profile with that admission number already exists.', 'warning')
+#                 return redirect(url_for('complete_profile'))
+
+#             new_profile = StudentProfile(
+#                 full_name=full_name,
+#                 exam_type=exam_type,
+#                 course_id=course_id,
+#                 level=selected_course.level,
+#                 admission_number=admission_number,
+#                 blocked=blocked,
+#                 phone_number=phone_number,
+#                 user_id=user_id
+#             )
+
+#             db.add(new_profile)
+#             db.commit()
+#             flash('Profile completed successfully!', 'success')
+#             return redirect(url_for('student_dashboard'))
+
+#         # ✅ Pass exam types list
+#         courses = db.query(Course).all()
+#         exam_types = ["KASNEB", "ICM", "KNEC", "ABMA"]  
+
+#         return render_template(
+#             'students/complete_profile.html',
+#             courses=courses,
+#             exam_types=exam_types   # 👈 passing to template
+#         )
+
+#     except Exception as e:
+#         db.rollback()
+#         flash(f"An error occurred: {e}", "danger")
+#         return redirect(url_for('complete_profile'))
+#     finally:
+#         db.close()
+
+@app.route("/complete_profile", methods=["GET", "POST"])
 def complete_profile():
-    if 'username' not in session or session.get('role') != 'student':
-        flash('Please log in as a student first.', 'error')
-        return redirect(url_for('login'))
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     db = SessionLocal()
-    try:
-        user_id = session.get('user_id')
+    user_id = session["user_id"]
 
-        if request.method == 'POST':
-            full_name = request.form.get('full_name')
-            exam_type = request.form.get('exam_type')
-            course_id = request.form.get('course_id')
-            admission_number = request.form.get('admission_number')
-            phone_number = request.form.get('phone_number')
-            blocked = False
+    if request.method == "POST":
+        full_name = request.form.get("full_name")
+        exam_type = request.form.get("exam_type")
+        course_id = request.form.get("course_id")
+        level = request.form.get("level")
+        admission_number = request.form.get("admission_number")
+        phone_number = request.form.get("phone_number")
 
-            # Ensure course_id is integer
-            try:
-                course_id = int(course_id)
-            except:
-                flash('Invalid course selected.', 'danger')
-                return redirect(url_for('complete_profile'))
-
-            selected_course = db.query(Course).filter_by(id=course_id).first()
-            if not selected_course:
-                flash("Invalid course selected.", "danger")
-                return redirect(url_for('complete_profile'))
-
-            existing_profile = db.query(StudentProfile).filter_by(admission_number=admission_number).first()
-            if existing_profile:
-                flash('A profile with that admission number already exists.', 'warning')
-                return redirect(url_for('complete_profile'))
-
-            new_profile = StudentProfile(
-                full_name=full_name,
-                exam_type=exam_type,
-                course_id=course_id,
-                level=selected_course.level,
-                admission_number=admission_number,
-                blocked=blocked,
-                phone_number=phone_number,
-                user_id=user_id
-            )
-
-            db.add(new_profile)
-            db.commit()
-            flash('Profile completed successfully!', 'success')
-            return redirect(url_for('student_dashboard'))
-
-        # ✅ Pass exam types list
-        courses = db.query(Course).all()
-        exam_types = ["KASNEB", "ICM", "KNEC", "ABMA"]  
-
-        return render_template(
-            'students/complete_profile.html',
-            courses=courses,
-            exam_types=exam_types   # 👈 passing to template
+        profile = StudentProfile(
+            full_name=full_name,
+            exam_type=exam_type,
+            course_id=course_id,
+            level=level,
+            admission_number=admission_number,
+            phone_number=phone_number,
+            user_id=user_id,   # ✅ FIX HERE
         )
-
-    except Exception as e:
-        db.rollback()
-        flash(f"An error occurred: {e}", "danger")
-        return redirect(url_for('complete_profile'))
-    finally:
+        db.add(profile)
+        db.commit()
         db.close()
+        return redirect(url_for("student_dashboard"))
 
+    courses = db.query(Course).all()
+    return render_template("students/complete_profile.html", courses=courses)
 
 
 #student dashboard
