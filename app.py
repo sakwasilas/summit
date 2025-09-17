@@ -879,7 +879,6 @@ def register():
     return render_template('students/Register.html')
 
 
-''''student complete profile'''
 @app.route('/complete_profile', methods=['GET', 'POST'])
 def complete_profile():
     if 'username' not in session or session.get('role') != 'student':
@@ -888,17 +887,28 @@ def complete_profile():
 
     db = SessionLocal()
     try:
+        user_id = session.get('user_id')
+
         if request.method == 'POST':
             full_name = request.form.get('full_name')
             exam_type = request.form.get('exam_type')
             course_id = request.form.get('course_id')
-            level = request.form.get('level')
             admission_number = request.form.get('admission_number')
             phone_number = request.form.get('phone_number')
             blocked = False
-            user_id = session.get('user_id')
 
-            # ✅ Use db.query instead of StudentProfile.query
+            # Ensure course_id is integer
+            try:
+                course_id = int(course_id)
+            except:
+                flash('Invalid course selected.', 'danger')
+                return redirect(url_for('complete_profile'))
+
+            selected_course = db.query(Course).filter_by(id=course_id).first()
+            if not selected_course:
+                flash("Invalid course selected.", "danger")
+                return redirect(url_for('complete_profile'))
+
             existing_profile = db.query(StudentProfile).filter_by(admission_number=admission_number).first()
             if existing_profile:
                 flash('A profile with that admission number already exists.', 'warning')
@@ -908,7 +918,7 @@ def complete_profile():
                 full_name=full_name,
                 exam_type=exam_type,
                 course_id=course_id,
-                level=level,
+                level=selected_course.level,
                 admission_number=admission_number,
                 blocked=blocked,
                 phone_number=phone_number,
@@ -920,14 +930,14 @@ def complete_profile():
             flash('Profile completed successfully!', 'success')
             return redirect(url_for('student_dashboard'))
 
-        # ✅ If GET request, pass courses and levels to template
+        # ✅ Pass exam types list
         courses = db.query(Course).all()
-        levels = [lvl[0] for lvl in db.query(Course.level).distinct().all()]
+        exam_types = ["KASNEB", "ICM", "KNEC", "ABMA"]  
 
         return render_template(
             'students/complete_profile.html',
             courses=courses,
-            levels=levels
+            exam_types=exam_types   # 👈 passing to template
         )
 
     except Exception as e:
@@ -936,6 +946,7 @@ def complete_profile():
         return redirect(url_for('complete_profile'))
     finally:
         db.close()
+
 
 
 #student dashboard
