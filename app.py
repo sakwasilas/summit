@@ -12,6 +12,9 @@ from models import User, Admin, Course, Subject, Question, Quiz, Video, Document
 from utils import parse_docx_questions, get_quiz_status
 from utils import extract_drive_id, get_drive_embed_url
 
+from sqlalchemy.exc import IntegrityError
+
+
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB limit
 app.secret_key = '132silas456sakwa789ayanga'
@@ -841,9 +844,9 @@ def student_activity():
     finally:
         db.close()
 
-#-----------------------------
-#student functionality
-#----------------------------
+# -----------------------------
+# Student functionality
+# -----------------------------
 
 # Register route
 @app.route('/register', methods=['GET', 'POST'])
@@ -854,13 +857,7 @@ def register():
 
         db = SessionLocal()
         try:
-            # Check if username already exists
-            existing = db.query(User).filter_by(username=username).first()
-            if existing:
-                flash('❌ Username already exists. Please choose another one.', 'danger')
-                return render_template('students/Register.html', username=username)
-
-            # Add new user
+            # ✅ Try to add directly
             user = User(username=username, password=password)
             db.add(user)
             db.commit()
@@ -869,14 +866,16 @@ def register():
             return redirect(url_for('login'))
 
         except IntegrityError:
+            # ✅ Rollback on duplicate
             db.rollback()
-            flash('❌ Error: Username already exists.', 'danger')
+            flash('❌ Username already exists. Please choose another one.', 'danger')
             return render_template('students/Register.html', username=username)
 
         finally:
             db.close()
 
     return render_template('students/Register.html')
+
 
 
 # @app.route('/complete_profile', methods=['GET', 'POST'])
