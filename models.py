@@ -173,7 +173,7 @@ class StudentProfile(Base):
     exam_type = Column(String(50), nullable=False)  
     course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)  
     
-    level = Column(String(50), nullable=False)
+    
     admission_number = Column(String(50), unique=True, nullable=False)
     blocked = Column(Boolean, default=False)
     phone_number = Column(String(50), nullable=False)
@@ -184,11 +184,11 @@ class StudentProfile(Base):
     # ✅ back reference to User
     user = relationship("User", back_populates="profile") 
 
-    def __init__(self, full_name, exam_type, course_id, level, admission_number, phone_number, user_id, blocked=False):
+    def __init__(self, full_name, exam_type, course_id, admission_number, phone_number, user_id, blocked=False):
         self.full_name = full_name
         self.exam_type = exam_type
         self.course_id = course_id
-        self.level = level
+        
         self.admission_number = admission_number
         self.phone_number = phone_number
         self.user_id = user_id 

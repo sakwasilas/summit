@@ -958,7 +958,7 @@ def complete_profile():
         full_name = request.form.get("full_name")
         exam_type = request.form.get("exam_type")
         course_id = request.form.get("course_id")
-        level = request.form.get("level")
+        
         admission_number = request.form.get("admission_number")
         phone_number = request.form.get("phone_number")
 
@@ -966,7 +966,7 @@ def complete_profile():
             full_name=full_name,
             exam_type=exam_type,
             course_id=course_id,
-            level=level,
+            
             admission_number=admission_number,
             phone_number=phone_number,
             user_id=user_id,   # ✅ FIX HERE
