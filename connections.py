@@ -1,10 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session, declarative_base
 
-# ✅ NEW DATABASE CONNECTION URL
-DATABASE_URL = "postgresql://summit_ch14_user:cEImWayFx7yKyraqNjWZd5KPDRCrn7bD@dpg-d3j5b8re5dus739iiti0-a.oregon-postgres.render.com:5432/summit_ch14?sslmode=require"
+# ✅ Updated database URL for `summit_2_594c`
+DATABASE_URL = "postgresql://summit_2_594c_user:nONVlxoLsg6mhZgHsQfZveamzOuxNcop@dpg-d4arcia4d50c73crc21g-a.oregon-postgres.render.com:5432/summit_2_594c"
 
-# Create the SQLAlchemy engine
+# Create SQLAlchemy engine
 engine = create_engine(DATABASE_URL)
 
 # Create a scoped session
