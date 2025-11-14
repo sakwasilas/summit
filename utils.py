@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 
-=======
->>>>>>> 02d562cefb5070e23153274eb41a77c1e8587419
 # # import os
 # # import re
 # # from docx import Document
