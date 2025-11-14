@@ -9,10 +9,9 @@ from docx.text.paragraph import Paragraph
 
 DEFAULT_IMAGE_DIR = "static/question_images"
 
-
-# ---------------------------------
-# Table to HTML conversion
-# ---------------------------------
+# ----------------------------
+# Helper functions
+# ----------------------------
 def extract_table_html(table):
     html = "<table border='1' cellspacing='0' cellpadding='5'>"
     for row in table.rows:
@@ -23,98 +22,85 @@ def extract_table_html(table):
     html += "</table>"
     return html
 
-
-# ---------------------------------
-# Extract and save embedded images
-# ---------------------------------
 def save_image_from_run(run, output_dir, image_counter):
-    blip_elements = run._element.findall(
-        './/a:blip',
-        namespaces={'a': 'http://schemas.openxmlformats.org/drawingml/2006/main'}
-    )
+    blip_elements = run._element.findall('.//a:blip', namespaces={
+        'a': 'http://schemas.openxmlformats.org/drawingml/2006/main'
+    })
 
     if not blip_elements:
         return None
 
     rId = blip_elements[0].get(qn('r:embed'))
     image_part = run.part.related_parts[rId]
-    image_data = image_part.blob
+    data = image_part.blob
 
-    image_filename = f"question_image_{image_counter}.png"
-    image_path = os.path.join(output_dir, image_filename)
+    filename = f"question_image_{image_counter}.png"
+    path = os.path.join(output_dir, filename)
+    with open(path, "wb") as f:
+        f.write(data)
 
-    with open(image_path, 'wb') as f:
-        f.write(image_data)
+    return filename
 
-    return image_filename
-
-
-# ---------------------------------
-# Iterate paragraphs + tables
-# ---------------------------------
 def iter_block_items(parent):
+    """Yield paragraphs and tables from a document body"""
     for child in parent.element.body.iterchildren():
         if isinstance(child, CT_P):
             yield Paragraph(child, parent)
         elif isinstance(child, CT_Tbl):
             yield Table(child, parent)
 
-
-# ---------------------------------
-# MAIN DOCX PARSER
-# ---------------------------------
+# ----------------------------
+# Main parsing function
+# ----------------------------
 def parse_docx_questions(file_stream, image_output_dir=DEFAULT_IMAGE_DIR):
     document = Document(file_stream)
     questions = []
+    skipped = 0
     current_question = None
     extra_html_parts = []
-    pre_question_buffer = []
+    pre_question_buffer = []  # Case study / content before first question
     image_counter = 0
-    skipped = 0
 
     os.makedirs(image_output_dir, exist_ok=True)
 
     for block in iter_block_items(document):
 
-        # --------------------- PARAGRAPH ----------------------
         if isinstance(block, Paragraph):
-            para = block
-            text = para.text.strip()
+            text = block.text.strip()
+            if not text:
+                continue
 
-            # extract images
-            for run in para.runs:
+            # Handle images in the paragraph
+            for run in block.runs:
                 image_name = save_image_from_run(run, image_output_dir, image_counter + 1)
                 if image_name and current_question:
                     image_counter += 1
                     current_question["image"] = image_name
 
-            if not text:
-                continue
-
-            # Case study BEFORE first question
+            # Case study / content before first question
             if current_question is None and not re.match(r"^\d+[\.\)]", text):
                 pre_question_buffer.append(f"<p>{text}</p>")
                 continue
 
-            # --------------------- QUESTION ----------------------
+            # Start of a new question
             if re.match(r"^\d+[\.\)]", text):
 
-                # close previous question
+                # Save previous question
                 if current_question:
                     if extra_html_parts:
-                        if current_question["extra_content"]:
-                            current_question["extra_content"] += ''.join(extra_html_parts)
-                        else:
-                            current_question["extra_content"] = ''.join(extra_html_parts)
+                        current_question["extra_content"] = (current_question.get("extra_content") or '') + ''.join(extra_html_parts)
                     extra_html_parts = []
 
-                    if current_question["question"] and current_question["answer"] in ["a","b","c","d"]:
+                    if current_question.get("question") and current_question.get("answer") in ["a", "b", "c", "d"]:
                         questions.append(current_question)
                     else:
                         skipped += 1
 
+                # Extract marks
                 marks_match = re.search(r"\((\d+)\s?(?:mks|marks?)\)", text, re.IGNORECASE)
                 marks = int(marks_match.group(1)) if marks_match else 1
+
+                # Clean question text
                 clean_text = re.sub(r"\s*\(\d+\s?(?:mks|marks?)\)", "", text)
                 question_text = re.sub(r"^\d+[\.\)]\s*", "", clean_text)
 
@@ -122,92 +108,43 @@ def parse_docx_questions(file_stream, image_output_dir=DEFAULT_IMAGE_DIR):
                     "question": question_text,
                     "a": "", "b": "", "c": "", "d": "",
                     "answer": "",
-                    "extra_content": None,
+                    "extra_content": ''.join(pre_question_buffer) if pre_question_buffer else None,
                     "image": None,
                     "marks": marks
                 }
+                pre_question_buffer = []
 
-                # attach case-study if available
-                if pre_question_buffer:
-                    current_question["extra_content"] = ''.join(pre_question_buffer)
-                    pre_question_buffer = []
-
-            # --------------------- OPTION ----------------------
+            # Options A-D
             elif re.match(r"^\(?[a-dA-D][\.\)]", text):
                 match = re.match(r"^\(?([a-dA-D])[\.\)]\s*(.+)", text)
                 if match and current_question:
                     label = match.group(1).lower()
                     current_question[label] = match.group(2).strip()
 
-            # --------------------- ANSWER ----------------------
+            # Answer line
             elif re.match(r"^(answer|correct answer):", text, re.IGNORECASE):
                 match = re.search(r":\s*([a-dA-D])", text, re.IGNORECASE)
                 if match and current_question:
                     current_question["answer"] = match.group(1).lower()
 
-            # --------------------- EXTRA CONTENT ----------------------
+            # Extra content
             else:
                 extra_html_parts.append(f"<p>{text}</p>")
 
-        # --------------------- TABLE ----------------------
         elif isinstance(block, Table):
-            html = extract_table_html(block)
-
+            table_html = extract_table_html(block)
             if current_question:
-                if current_question["extra_content"]:
-                    current_question["extra_content"] += html
-                else:
-                    current_question["extra_content"] = html
+                current_question["extra_content"] = (current_question.get("extra_content") or '') + table_html
             else:
-                pre_question_buffer.append(html)
+                pre_question_buffer.append(table_html)
 
-    # ------------------ FINAL QUESTION SAVE --------------------
+    # Save final question
     if current_question:
         if extra_html_parts:
-            if current_question["extra_content"]:
-                current_question["extra_content"] += ''.join(extra_html_parts)
-            else:
-                current_question["extra_content"] = ''.join(extra_html_parts)
-
-        if current_question["question"] and current_question["answer"] in ["a","b","c","d"]:
+            current_question["extra_content"] = (current_question.get("extra_content") or '') + ''.join(extra_html_parts)
+        if current_question.get("question") and current_question.get("answer") in ["a", "b", "c", "d"]:
             questions.append(current_question)
         else:
             skipped += 1
 
-    return questions
-
-
-# ==========================================================
-# FIX FOR RENDER: Missing get_quiz_status()
-# ==========================================================
-def get_quiz_status(user_id):
-    """Simple placeholder so imports do NOT break Render."""
-    return "active"
-
-
-# ==========================================================
-# Google Drive Helpers
-# ==========================================================
-from urllib.parse import urlparse, parse_qs
-
-def extract_drive_id(url: str):
-    if not url:
-        return None
-
-    m = re.search(r'/d/([a-zA-Z0-9_-]+)', url)
-    if m:
-        return m.group(1)
-
-    try:
-        parsed = urlparse(url)
-        qs = parse_qs(parsed.query)
-        if 'id' in qs:
-            return qs['id'][0]
-    except:
-        pass
-
-    return None
-
-
-def get_drive_embed_url(file_id: str):
-    return f"https://drive.google.com/file/d/{file_id}/preview"
+    return questions, skipped
